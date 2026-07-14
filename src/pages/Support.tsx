@@ -333,7 +333,35 @@ export default function Support() {
           </Card>
         </div>
 
+        {/* Telegram Support */}
+        <a
+          href="https://telegram.me/+EbtDUOCs7qA4YzQ1"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block rounded-xl p-4 sm:p-5 transition-transform hover:scale-[1.01]"
+          style={{
+            background: 'linear-gradient(135deg, #37BBFE, #007DBB)',
+            boxShadow: '0 10px 28px rgba(34,158,217,.35)',
+          }}
+        >
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(255,255,255,.2)', border: '2px solid #fff' }}>
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="#fff" aria-hidden="true">
+                <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-bold text-sm sm:text-base">Need help? Chat on Telegram</p>
+              <p className="text-white/85 text-xs sm:text-sm">Fastest response — join our support group for instant help</p>
+            </div>
+            <div className="hidden sm:block text-white text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: 'rgba(255,255,255,.2)' }}>
+              Open →
+            </div>
+          </div>
+        </a>
+
         {/* Tickets List */}
+
         <h2 className="sr-only">Your Support Tickets</h2>
         <Card className="glass-card">
           <CardHeader>
