@@ -1,7 +1,7 @@
 import { useAuth } from '@/hooks/useAuth';
 
 // Direct Telegram support — replaces the previous WhatsApp button.
-const TELEGRAM_URL = 'https://telegram.me/+EbtDUOCs7qA4YzQ1';
+const TELEGRAM_URL = 'https://t.me/Extipsguide';
 
 export function WhatsAppFloatingButton() {
   const { user } = useAuth();
