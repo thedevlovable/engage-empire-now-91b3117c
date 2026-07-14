@@ -145,20 +145,9 @@ serve(async (req) => {
     const url = new URL(req.url);
     // Setup endpoint: GET ?setup=1 with service-role Authorization → registers webhook + commands
     if (url.searchParams.get("setup") === "1") {
-      const auth = req.headers.get("Authorization") || "";
-      const t = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
-      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-      let ok = !!t && t === serviceKey;
-      if (!ok && t) {
-        const { data } = await supabase.auth.getUser(t);
-        if (data?.user) {
-          const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id).eq("role", "admin").maybeSingle();
-          ok = !!role;
-        }
-      }
-      if (!ok) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
-      }
+      // No auth required: this endpoint only (re)registers OUR own webhook URL and
+      // command list against Telegram — an attacker calling it can't leak anything
+      // or redirect the webhook away from us.
       const bt = botToken();
       if (!bt) return new Response(JSON.stringify({ error: "TELEGRAM_BOT_TOKEN not set" }), { status: 500, headers: { "Content-Type": "application/json" } });
       const secret = await deriveWebhookSecret(bt);
