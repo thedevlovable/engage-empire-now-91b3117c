@@ -147,7 +147,16 @@ serve(async (req) => {
     if (url.searchParams.get("setup") === "1") {
       const auth = req.headers.get("Authorization") || "";
       const t = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
-      if (!t || t !== (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "")) {
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+      let ok = !!t && t === serviceKey;
+      if (!ok && t) {
+        const { data } = await supabase.auth.getUser(t);
+        if (data?.user) {
+          const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id).eq("role", "admin").maybeSingle();
+          ok = !!role;
+        }
+      }
+      if (!ok) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
       }
       const bt = botToken();
