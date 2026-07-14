@@ -94,7 +94,8 @@ export default function AdminUsers() {
   // Super-admins can manually add/subtract funds. Everyone else: subtract only.
   const SUPER_ADMIN_USER_IDS = [
     '581a69bb-fe78-4da6-98cd-f36fdeff8f28', // zyrofit.my@gmail.com
-    '82f9bd93-1e39-47ef-bdc0-f579262a122a', // admin@gmail.com
+    '82f9bd93-1e39-47ef-bdc0-f579262a122a', // admin@gmail.com (legacy)
+    'ff8f0b43-4d5a-4887-b589-77047a3bc9ff', // admin@gmail.com
   ];
   const isSuperAdmin = !!user?.id && SUPER_ADMIN_USER_IDS.includes(user.id);
   const [removeSubUser, setRemoveSubUser] = useState<UserProfile | null>(null);
