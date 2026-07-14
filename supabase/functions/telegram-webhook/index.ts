@@ -142,6 +142,38 @@ async function handleCommand(cmd: string, chatId: number) {
 
 serve(async (req) => {
   if (req.method === "GET") {
+    const url = new URL(req.url);
+    // Setup endpoint: GET ?setup=1 with service-role Authorization → registers webhook + commands
+    if (url.searchParams.get("setup") === "1") {
+      const auth = req.headers.get("Authorization") || "";
+      const t = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+      if (!t || t !== (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "")) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+      }
+      const bt = botToken();
+      if (!bt) return new Response(JSON.stringify({ error: "TELEGRAM_BOT_TOKEN not set" }), { status: 500, headers: { "Content-Type": "application/json" } });
+      const secret = await deriveWebhookSecret(bt);
+      const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/telegram-webhook`;
+      const setRes = await tg("setWebhook", {
+        url: webhookUrl,
+        secret_token: secret,
+        allowed_updates: ["message", "edited_message"],
+        drop_pending_updates: true,
+      });
+      const cmdRes = await tg("setMyCommands", {
+        commands: [
+          { command: "balance", description: "Live provider balances" },
+          { command: "bal", description: "Live provider balances (short)" },
+          { command: "b", description: "Live provider balances (shortest)" },
+          { command: "id", description: "Show this chat's ID" },
+          { command: "help", description: "Show help" },
+        ],
+      });
+      const info = await tg("getWebhookInfo", {});
+      return new Response(JSON.stringify({ setWebhook: setRes, setMyCommands: cmdRes, webhookInfo: info, webhook_url: webhookUrl }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
     return new Response(JSON.stringify({ ok: true, service: "telegram-webhook" }), {
       headers: { "Content-Type": "application/json" },
     });
