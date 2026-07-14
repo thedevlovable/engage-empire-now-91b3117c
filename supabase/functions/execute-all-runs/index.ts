@@ -893,12 +893,15 @@ serve(async (req) => {
     // reject them. Accept them by role claim after the Edge gateway has verified JWT.
     const authHeader = req.headers.get('Authorization')
     const supabase = supabaseModule
-    if (!authHeader?.startsWith('Bearer ')) {
+    const cronJobHeader = req.headers.get('x-lovable-cron') || ''
+    const isScheduledCronCall = cronJobHeader === 'organic-runs-minutely'
+
+    if (!authHeader?.startsWith('Bearer ') && !isScheduledCronCall) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
-    {
+    if (!isScheduledCronCall) {
       const token = authHeader.replace('Bearer ', '').trim()
       const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
       const cronSecret = Deno.env.get('CRON_SECRET') ?? ''

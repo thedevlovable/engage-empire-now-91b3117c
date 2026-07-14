@@ -297,22 +297,27 @@ Deno.serve(async (req) => {
     // Auth check - this is a cron/internal function.
     // Service-role tokens have no user `sub`, so accept them by verified role claim.
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
+    const cronJobHeader = req.headers.get('x-lovable-cron') || ''
+    const isScheduledCronCall = cronJobHeader === 'check-order-status-every-2-min'
+
+    if (!authHeader?.startsWith('Bearer ') && !isScheduledCronCall) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
-    const token = authHeader.replace('Bearer ', '').trim()
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    const cronSecret = Deno.env.get('CRON_SECRET') ?? ''
-    const payload = decodeJwtPayload(token)
-    const isSystemCall = !!token && (token === serviceKey || (cronSecret && token === cronSecret) || payload?.role === 'service_role')
-    if (!isSystemCall) {
-      const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token)
-      if (claimsError || !claimsData?.claims?.sub) {
-        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+    if (!isScheduledCronCall) {
+      const token = authHeader.replace('Bearer ', '').trim()
+      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      const cronSecret = Deno.env.get('CRON_SECRET') ?? ''
+      const payload = decodeJwtPayload(token)
+      const isSystemCall = !!token && (token === serviceKey || (cronSecret && token === cronSecret) || payload?.role === 'service_role')
+      if (!isSystemCall) {
+        const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token)
+        if (claimsError || !claimsData?.claims?.sub) {
+          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
       }
     }
 
