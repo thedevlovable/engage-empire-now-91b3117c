@@ -143,17 +143,22 @@ serve(async (req) => {
         return at - bt
       })
 
+      const nowMs = Date.now()
       for (const m of sorted) {
         const acc = m.provider_account
-        if (acc && acc.is_active) {
-          providerOptions.push({
-            name: acc.name,
-            apiKey: acc.api_key,
-            apiUrl: acc.api_url,
-            providerServiceId: m.provider_service_id,
-            accountId: acc.id,
-          })
+        if (!acc || !acc.is_active) continue
+        // Skip accounts still in cooldown
+        if (acc.cooldown_until && new Date(acc.cooldown_until).getTime() > nowMs) {
+          console.log(`[process-order] Skipping ${acc.name} — in cooldown until ${acc.cooldown_until}`)
+          continue
         }
+        providerOptions.push({
+          name: acc.name,
+          apiKey: acc.api_key,
+          apiUrl: acc.api_url,
+          providerServiceId: m.provider_service_id,
+          accountId: acc.id,
+        })
       }
     }
 
@@ -230,13 +235,22 @@ serve(async (req) => {
           const errorMsg = typeof result.error === 'string' ? result.error : JSON.stringify(result.error)
           console.log(`[process-order] Provider ${provider.name} error: ${errorMsg}`)
           lastError = errorMsg
-          
-          // If this error means we should try another provider, continue
+
+          // If this error means we should try another provider, cooldown + continue
           if (shouldTryNextProvider(errorMsg) && providerOptions.indexOf(provider) < providerOptions.length - 1) {
+            if (provider.accountId) {
+              const cooldownUntil = new Date(Date.now() + 5 * 60 * 1000).toISOString()
+              await supabase.from('provider_accounts').update({
+                cooldown_until: cooldownUntil,
+                last_error: errorMsg.slice(0, 500),
+                last_error_at: new Date().toISOString(),
+              }).eq('id', provider.accountId)
+              console.log(`[process-order] Cooldown 5min set on ${provider.name}`)
+            }
             console.log(`[process-order] Trying next provider...`)
             continue
           }
-          
+
           // Last provider or permanent error — fail the order
           await supabase.from('orders').update({ status: 'failed', error_message: errorMsg }).eq('id', order_id)
           return new Response(JSON.stringify({ success: false, error: errorMsg }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
