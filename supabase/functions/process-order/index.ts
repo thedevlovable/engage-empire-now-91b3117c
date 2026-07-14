@@ -235,13 +235,22 @@ serve(async (req) => {
           const errorMsg = typeof result.error === 'string' ? result.error : JSON.stringify(result.error)
           console.log(`[process-order] Provider ${provider.name} error: ${errorMsg}`)
           lastError = errorMsg
-          
-          // If this error means we should try another provider, continue
+
+          // If this error means we should try another provider, cooldown + continue
           if (shouldTryNextProvider(errorMsg) && providerOptions.indexOf(provider) < providerOptions.length - 1) {
+            if (provider.accountId) {
+              const cooldownUntil = new Date(Date.now() + 5 * 60 * 1000).toISOString()
+              await supabase.from('provider_accounts').update({
+                cooldown_until: cooldownUntil,
+                last_error: errorMsg.slice(0, 500),
+                last_error_at: new Date().toISOString(),
+              }).eq('id', provider.accountId)
+              console.log(`[process-order] Cooldown 5min set on ${provider.name}`)
+            }
             console.log(`[process-order] Trying next provider...`)
             continue
           }
-          
+
           // Last provider or permanent error — fail the order
           await supabase.from('orders').update({ status: 'failed', error_message: errorMsg }).eq('id', order_id)
           return new Response(JSON.stringify({ success: false, error: errorMsg }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
