@@ -213,6 +213,7 @@ serve(async (req) => {
           { command: "balance", description: "Live provider balances" },
           { command: "bal", description: "Live provider balances (short)" },
           { command: "b", description: "Live provider balances (shortest)" },
+          { command: "test", description: "Send sample deposit + withdrawal notifications" },
           { command: "id", description: "Show this chat's ID" },
           { command: "help", description: "Show help" },
         ],
