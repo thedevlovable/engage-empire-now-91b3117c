@@ -385,7 +385,9 @@ serve(async (req) => {
           } else {
             updated++
             
-            // Auto-link in mapping table
+            // Auto-link in mapping table without overwriting existing admin priority.
+            // Upsert with sort_order=1 was resetting saved provider rotation order
+            // every time services were re-imported/refreshed from this function.
             const { data: accounts } = await supabase
               .from('provider_accounts')
               .select('id')
@@ -394,13 +396,30 @@ serve(async (req) => {
               .limit(1)
             
             if (accounts?.[0]) {
-              await supabase.from('service_provider_mapping').upsert({
-                service_id: existing.id,
-                provider_account_id: accounts[0].id,
-                provider_service_id: service.provider_service_id,
-                sort_order: 1,
-                is_active: true
-              }, { onConflict: 'service_id,provider_account_id' })
+              const { data: existingMapping } = await supabase
+                .from('service_provider_mapping')
+                .select('id')
+                .eq('service_id', existing.id)
+                .eq('provider_account_id', accounts[0].id)
+                .maybeSingle()
+
+              if (existingMapping) {
+                await supabase
+                  .from('service_provider_mapping')
+                  .update({
+                    provider_service_id: service.provider_service_id,
+                    is_active: true
+                  })
+                  .eq('id', existingMapping.id)
+              } else {
+                await supabase.from('service_provider_mapping').insert({
+                  service_id: existing.id,
+                  provider_account_id: accounts[0].id,
+                  provider_service_id: service.provider_service_id,
+                  sort_order: 1,
+                  is_active: true
+                })
+              }
             }
           }
         } else {
