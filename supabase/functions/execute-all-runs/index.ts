@@ -894,7 +894,16 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization')
     const supabase = supabaseModule
     const cronJobHeader = req.headers.get('x-lovable-cron') || ''
-    const isScheduledCronCall = cronJobHeader === 'organic-runs-minutely'
+    const cronTokenHeader = req.headers.get('x-cron-token') || ''
+    let isScheduledCronCall = false
+    if (cronJobHeader === 'organic-runs-minutely' && cronTokenHeader) {
+      const { data: cronTokenRow } = await supabase
+        .from('internal_cron_tokens')
+        .select('token')
+        .eq('name', 'organic-runs-minutely')
+        .maybeSingle()
+      isScheduledCronCall = cronTokenRow?.token === cronTokenHeader
+    }
 
     if (!authHeader?.startsWith('Bearer ') && !isScheduledCronCall) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {

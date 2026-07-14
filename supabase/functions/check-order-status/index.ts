@@ -298,7 +298,16 @@ Deno.serve(async (req) => {
     // Service-role tokens have no user `sub`, so accept them by verified role claim.
     const authHeader = req.headers.get('Authorization')
     const cronJobHeader = req.headers.get('x-lovable-cron') || ''
-    const isScheduledCronCall = cronJobHeader === 'check-order-status-every-2-min'
+    const cronTokenHeader = req.headers.get('x-cron-token') || ''
+    let isScheduledCronCall = false
+    if (cronJobHeader === 'check-order-status-every-2-min' && cronTokenHeader) {
+      const { data: cronTokenRow } = await supabase
+        .from('internal_cron_tokens')
+        .select('token')
+        .eq('name', 'check-order-status-every-2-min')
+        .maybeSingle()
+      isScheduledCronCall = cronTokenRow?.token === cronTokenHeader
+    }
 
     if (!authHeader?.startsWith('Bearer ') && !isScheduledCronCall) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
