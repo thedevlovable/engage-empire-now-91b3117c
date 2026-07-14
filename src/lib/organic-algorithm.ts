@@ -1238,7 +1238,7 @@ export function generateAllOrganicSchedules(
   startTime: Date = new Date(),
   defaultTimeLimitHours?: number
 ): FullOrganicConfig[] {
-  return engagements
+  const schedules = engagements
     .filter(e => e.enabled && e.quantity > 0)
     .map(e => generateOrganicSchedule(
       e.type,
@@ -1250,7 +1250,137 @@ export function generateAllOrganicSchedules(
       e.serviceMinimum,
       e.timeLimitHours ?? defaultTimeLimitHours
     ));
+
+  // NEW: Cross-type organic coordination — views lead, others trail proportionally
+  return coordinateOrganicSchedules(schedules, startTime);
 }
+
+/**
+ * ORGANIC COORDINATION LAYER
+ * Real engagement pattern: views go first, then likes/saves/shares/comments/reposts
+ * trickle in AFTER views start, and their cumulative progress never runs ahead of views.
+ * This dramatically reduces bot-detection scores because platform algorithms expect
+ * secondary engagement to follow view growth, not precede or race it.
+ */
+function coordinateOrganicSchedules(
+  schedules: FullOrganicConfig[],
+  startTime: Date,
+): FullOrganicConfig[] {
+  const viewSched = schedules.find(s => s.engagementType === 'views');
+  // No views leader → nothing to coordinate against
+  if (!viewSched || viewSched.runs.length === 0) return schedules;
+
+  const viewRuns = [...viewSched.runs].sort(
+    (a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime(),
+  );
+  const viewTotal = viewSched.totalQuantity;
+  const viewFirst = viewRuns[0].scheduledAt.getTime();
+  const viewEnd = viewRuns[viewRuns.length - 1].scheduledAt.getTime();
+  const viewSpan = Math.max(1, viewEnd - viewFirst);
+
+  // Precompute view cumulative delivery ratio at any timestamp
+  const viewCumRatioAt = (t: number): number => {
+    if (t <= viewFirst) return 0;
+    if (t >= viewEnd) return 1;
+    let cum = 0;
+    for (const r of viewRuns) {
+      if (r.scheduledAt.getTime() <= t) cum += r.quantity;
+      else break;
+    }
+    return Math.min(1, cum / viewTotal);
+  };
+
+  // Industry-standard start-delay range: secondary engagement lags views by 5-15 min
+  const DELAY_MIN_MS = 5 * 60 * 1000;
+  const DELAY_MAX_MS = 15 * 60 * 1000;
+  // Tolerance: secondary cum ratio may briefly exceed view ratio by this factor
+  const TOLERANCE = 1.05;
+  // Max push per throttle step
+  const PUSH_STEP_MS = 90 * 1000;
+  const MAX_PUSH_STEPS = 60;
+  // Allow secondary types to end slightly after views (natural tail)
+  const TAIL_ALLOWANCE_MS = 30 * 60 * 1000;
+
+  return schedules.map(s => {
+    if (s.engagementType === 'views' || s.runs.length === 0) return s;
+
+    const runs = [...s.runs].sort(
+      (a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime(),
+    );
+    const origFirst = runs[0].scheduledAt.getTime();
+    const origSpan = Math.max(
+      1,
+      runs[runs.length - 1].scheduledAt.getTime() - origFirst,
+    );
+
+    // Per-type independent random delay so each type has its own "feel"
+    const delay = DELAY_MIN_MS + Math.random() * (DELAY_MAX_MS - DELAY_MIN_MS);
+    const newStart = viewFirst + delay;
+
+    // Stretch this type's window to roughly match views (0.9x-1.2x) so it trails naturally
+    const targetSpan = Math.max(origSpan, viewSpan * (0.9 + Math.random() * 0.3));
+    const scale = targetSpan / origSpan;
+
+    // Step 1: rescale timestamps around new start
+    const shifted = runs.map(r => {
+      const rel = r.scheduledAt.getTime() - origFirst;
+      return {
+        ...r,
+        scheduledAt: new Date(newStart + rel * scale),
+      };
+    });
+
+    // Step 2: throttle each run so cumulative ratio ≤ view cumulative ratio * tolerance
+    const total = s.totalQuantity;
+    let cumBefore = 0;
+    const maxAllowedTime = viewEnd + TAIL_ALLOWANCE_MS;
+
+    for (let i = 0; i < shifted.length; i++) {
+      const r = shifted[i];
+      let t = r.scheduledAt.getTime();
+      // Never schedule earlier than previous run + small gap
+      if (i > 0) {
+        const minT = shifted[i - 1].scheduledAt.getTime() + 30 * 1000;
+        if (t < minT) t = minT;
+      }
+      const targetRatioAfter = (cumBefore + r.quantity) / total;
+
+      let steps = 0;
+      while (
+        steps < MAX_PUSH_STEPS &&
+        t < maxAllowedTime &&
+        targetRatioAfter > viewCumRatioAt(t) * TOLERANCE
+      ) {
+        t += PUSH_STEP_MS;
+        steps++;
+      }
+      shifted[i] = { ...r, scheduledAt: new Date(t) };
+      cumBefore += r.quantity;
+    }
+
+    // Step 3: re-sort & renumber, update day/hour metadata, mark as coordinated
+    shifted.sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime());
+    shifted.forEach((r, i) => {
+      r.runNumber = i + 1;
+      r.dayOfWeek = r.scheduledAt.getDay();
+      r.hourOfDay = r.scheduledAt.getHours();
+    });
+
+    const totalDuration =
+      shifted[shifted.length - 1].scheduledAt.getTime() -
+      shifted[0].scheduledAt.getTime();
+
+    return {
+      ...s,
+      runs: shifted,
+      totalDuration,
+      warnings: [
+        ...s.warnings,
+        `Coordinated with views: starts ~${Math.round(delay / 60000)}min after views, throttled to trail view progress`,
+      ],
+    };
+  });
+
 
 /**
  * Validate if a quantity is valid for provider
