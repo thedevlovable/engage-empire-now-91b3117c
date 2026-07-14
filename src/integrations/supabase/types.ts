@@ -946,11 +946,14 @@ export type Database = {
           balance: number | null
           balance_checked_at: string | null
           balance_currency: string | null
+          cooldown_until: string | null
           created_at: string | null
           delivery_multiplier: number
           id: string
           is_active: boolean | null
           last_balance_error: string | null
+          last_error: string | null
+          last_error_at: string | null
           last_low_balance_alert_at: string | null
           last_used_at: string | null
           low_balance_threshold: number
@@ -965,11 +968,14 @@ export type Database = {
           balance?: number | null
           balance_checked_at?: string | null
           balance_currency?: string | null
+          cooldown_until?: string | null
           created_at?: string | null
           delivery_multiplier?: number
           id?: string
           is_active?: boolean | null
           last_balance_error?: string | null
+          last_error?: string | null
+          last_error_at?: string | null
           last_low_balance_alert_at?: string | null
           last_used_at?: string | null
           low_balance_threshold?: number
@@ -984,11 +990,14 @@ export type Database = {
           balance?: number | null
           balance_checked_at?: string | null
           balance_currency?: string | null
+          cooldown_until?: string | null
           created_at?: string | null
           delivery_multiplier?: number
           id?: string
           is_active?: boolean | null
           last_balance_error?: string | null
+          last_error?: string | null
+          last_error_at?: string | null
           last_low_balance_alert_at?: string | null
           last_used_at?: string | null
           low_balance_threshold?: number
