@@ -143,17 +143,22 @@ serve(async (req) => {
         return at - bt
       })
 
+      const nowMs = Date.now()
       for (const m of sorted) {
         const acc = m.provider_account
-        if (acc && acc.is_active) {
-          providerOptions.push({
-            name: acc.name,
-            apiKey: acc.api_key,
-            apiUrl: acc.api_url,
-            providerServiceId: m.provider_service_id,
-            accountId: acc.id,
-          })
+        if (!acc || !acc.is_active) continue
+        // Skip accounts still in cooldown
+        if (acc.cooldown_until && new Date(acc.cooldown_until).getTime() > nowMs) {
+          console.log(`[process-order] Skipping ${acc.name} — in cooldown until ${acc.cooldown_until}`)
+          continue
         }
+        providerOptions.push({
+          name: acc.name,
+          apiKey: acc.api_key,
+          apiUrl: acc.api_url,
+          providerServiceId: m.provider_service_id,
+          accountId: acc.id,
+        })
       }
     }
 
