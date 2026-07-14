@@ -2,10 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY') || ''
-const TELEGRAM_API_KEY = Deno.env.get('TELEGRAM_API_KEY') || ''
-const ADMIN_CHAT_ID = Deno.env.get('TELEGRAM_CHAT_ID') || ''
-const GATEWAY_URL = 'https://connector-gateway.lovable.dev/telegram'
+const BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN') || ''
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,17 +15,22 @@ function esc(v: unknown): string {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
 
-async function tgSend(chatId: string | number, text: string) {
-  if (!LOVABLE_API_KEY || !TELEGRAM_API_KEY) return { skipped: true }
+function adminChats(): string[] {
+  const ids = [
+    Deno.env.get('TELEGRAM_ADMIN_CHAT_ID_1'),
+    Deno.env.get('TELEGRAM_ADMIN_CHAT_ID_2'),
+    Deno.env.get('TELEGRAM_CHAT_ID'),
+  ].filter((v): v is string => !!v && v.trim().length > 0)
+  return Array.from(new Set(ids.map((s) => s.trim())))
+}
+
+async function tgSend(chat_id: string | number, text: string) {
+  if (!BOT_TOKEN) return { skipped: true }
   try {
-    const r = await fetch(`${GATEWAY_URL}/sendMessage`, {
+    const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        'X-Connection-Api-Key': TELEGRAM_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id, text, parse_mode: 'HTML', disable_web_page_preview: true }),
     })
     return await r.json().catch(() => ({}))
   } catch (e) {
@@ -39,7 +41,6 @@ async function tgSend(chatId: string | number, text: string) {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   try {
-    // Auth: service-role key ONLY (internal endpoint)
     const auth = req.headers.get('Authorization') || ''
     const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
     if (!token || token !== SERVICE_ROLE) {
@@ -49,10 +50,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({} as any))
-    const {
-      user_id, order_id, method, status,
-      amount_inr, amount_usd, reason,
-    } = body || {}
+    const { user_id, order_id, method, status, amount_inr, amount_usd, reason } = body || {}
     if (!user_id || !order_id || !status || !method) {
       return new Response(JSON.stringify({ error: 'missing_fields' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -72,52 +70,48 @@ Deno.serve(async (req) => {
     const amtUsdTxt = amount_usd != null ? `$${Number(amount_usd).toFixed(2)}` : ''
     const methodLabel = String(method).toUpperCase()
 
-    // ── User DM ──
+    // ── User DM (if they linked their chat) ──
     let userSent = false
-    if (prof?.telegram_chat_id && prof?.telegram_notifications_enabled !== false) {
+    if (BOT_TOKEN && prof?.telegram_chat_id && prof?.telegram_notifications_enabled !== false) {
       const userMsg = isSuccess
         ? [
-            `✅ <b>Deposit Successful</b>`,
-            ``,
+            `✅ <b>Deposit Successful</b>`, ``,
             `💵 <b>Amount:</b> ${esc(amtInrTxt)}${amtUsdTxt ? ` (${esc(amtUsdTxt)})` : ''}`,
             `🏦 <b>New Balance:</b> ₹${esc(balInr)}`,
             `💳 <b>Method:</b> ${esc(methodLabel)}`,
-            `🆔 <b>Order:</b> <code>${esc(order_id)}</code>`,
-            ``,
+            `🆔 <b>Order:</b> <code>${esc(order_id)}</code>`, ``,
             `Thank you! Aap ab order laga sakte hain. 🚀`,
           ].join('\n')
         : [
-            `❌ <b>Deposit Failed</b>`,
-            ``,
+            `❌ <b>Deposit Failed</b>`, ``,
             `💵 <b>Amount:</b> ${esc(amtInrTxt)}`,
             `💳 <b>Method:</b> ${esc(methodLabel)}`,
             `🆔 <b>Order:</b> <code>${esc(order_id)}</code>`,
-            reason ? `📛 <b>Reason:</b> ${esc(reason)}` : '',
-            ``,
+            reason ? `📛 <b>Reason:</b> ${esc(reason)}` : '', ``,
             `Agar amount kat gaya hai to support se contact karein.`,
           ].filter(Boolean).join('\n')
       const res = await tgSend(prof.telegram_chat_id, userMsg)
       userSent = !!(res as any)?.ok
     }
 
-    // ── Admin channel ──
-    let adminSent = false
-    if (ADMIN_CHAT_ID) {
-      const tag = isSuccess ? '💰 <b>Deposit Success</b>' : '⚠️ <b>Deposit Failed</b>'
-      const adminMsg = [
-        `${tag} (${esc(methodLabel)})`,
-        ``,
-        `👤 <b>User:</b> ${esc(prof?.email ?? user_id)}`,
-        `💵 <b>Amount:</b> ${esc(amtInrTxt)}${amtUsdTxt ? ` (${esc(amtUsdTxt)})` : ''}`,
-        isSuccess ? `🏦 <b>New Balance:</b> ₹${esc(balInr)}` : '',
-        `🆔 <b>Order:</b> <code>${esc(order_id)}</code>`,
-        reason ? `📛 <b>Reason:</b> ${esc(reason)}` : '',
-      ].filter(Boolean).join('\n')
-      const res = await tgSend(ADMIN_CHAT_ID, adminMsg)
-      adminSent = !!(res as any)?.ok
+    // ── Admin channels (fan-out to both configured admin chats) ──
+    const chats = adminChats()
+    const tag = isSuccess ? '💰 <b>Deposit Success</b>' : '⚠️ <b>Deposit Failed</b>'
+    const adminMsg = [
+      `${tag} (${esc(methodLabel)})`, ``,
+      `👤 <b>User:</b> ${esc(prof?.email ?? user_id)}`,
+      `💵 <b>Amount:</b> ${esc(amtInrTxt)}${amtUsdTxt ? ` (${esc(amtUsdTxt)})` : ''}`,
+      isSuccess ? `🏦 <b>New Balance:</b> ₹${esc(balInr)}` : '',
+      `🆔 <b>Order:</b> <code>${esc(order_id)}</code>`,
+      reason ? `📛 <b>Reason:</b> ${esc(reason)}` : '',
+    ].filter(Boolean).join('\n')
+    let adminOk = 0
+    for (const c of chats) {
+      const r = await tgSend(c, adminMsg)
+      if ((r as any)?.ok) adminOk++
     }
 
-    return new Response(JSON.stringify({ ok: true, user_sent: userSent, admin_sent: adminSent }), {
+    return new Response(JSON.stringify({ ok: true, user_sent: userSent, admin_sent: adminOk, admin_targets: chats.length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (e) {
