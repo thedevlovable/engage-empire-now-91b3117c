@@ -123,17 +123,67 @@ async function fetchLiveBalances(chatId: number) {
   await tg("sendMessage", { chat_id: chatId, text: msg, parse_mode: "HTML" });
 }
 
+function adminChats(): string[] {
+  const ids = [
+    Deno.env.get("TELEGRAM_ADMIN_CHAT_ID_1"),
+    Deno.env.get("TELEGRAM_ADMIN_CHAT_ID_2"),
+    Deno.env.get("TELEGRAM_CHAT_ID"),
+  ].filter((v): v is string => !!v && v.trim().length > 0);
+  return Array.from(new Set(ids.map((s) => s.trim())));
+}
+
+async function sendTestNotifications(chatId: number) {
+  const chats = adminChats();
+  const ts = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+  const depositMsg = [
+    `💰 <b>Deposit Success</b> (TEST)`,
+    ``,
+    `👤 <b>User:</b> test@example.com`,
+    `💵 <b>Amount:</b> ₹500.00 ($5.56)`,
+    `🏦 <b>New Balance:</b> ₹1250.00`,
+    `💳 <b>Method:</b> ZAPUPI`,
+    `🆔 <b>Order:</b> <code>TEST-DEP-${Date.now()}</code>`,
+    `<i>${ts}</i>`,
+  ].join("\n");
+  const withdrawMsg = [
+    `🔴 <b>Manual Withdrawal (Admin)</b> (TEST)`,
+    ``,
+    `👤 <b>User:</b> test@example.com`,
+    `💵 <b>Amount:</b> ₹200.00`,
+    `🏦 <b>New Balance:</b> ₹1050.00`,
+    `🛡️ <b>Admin:</b> admin@example.com`,
+    `📝 <b>Notes:</b> Test withdrawal from /test command`,
+    `<i>${ts}</i>`,
+  ].join("\n");
+
+  let sentDep = 0, sentWith = 0;
+  for (const c of chats) {
+    const r1 = await tg("sendMessage", { chat_id: c, text: depositMsg, parse_mode: "HTML" });
+    if ((r1 as any)?.ok) sentDep++;
+    const r2 = await tg("sendMessage", { chat_id: c, text: withdrawMsg, parse_mode: "HTML" });
+    if ((r2 as any)?.ok) sentWith++;
+  }
+
+  await tg("sendMessage", {
+    chat_id: chatId,
+    parse_mode: "HTML",
+    text: `✅ <b>Test notifications sent</b>\n\nAdmin chats: <b>${chats.length}</b>\nDeposit sent: <b>${sentDep}</b>\nWithdrawal sent: <b>${sentWith}</b>`,
+  });
+}
+
 async function handleCommand(cmd: string, chatId: number) {
   const c = cmd.toLowerCase().split("@")[0].trim();
   if (c === "/balance" || c === "/bal" || c === "/b" || c === "/balances") {
     await fetchLiveBalances(chatId);
+  } else if (c === "/test") {
+    await sendTestNotifications(chatId);
   } else if (c === "/id" || c === "/whoami") {
     await tg("sendMessage", { chat_id: chatId, text: `Chat ID: <code>${chatId}</code>`, parse_mode: "HTML" });
   } else if (c === "/start" || c === "/help") {
     await tg("sendMessage", {
       chat_id: chatId,
       parse_mode: "HTML",
-      text: `👋 <b>Extips Panel Admin Bot</b>\n\nCommands:\n\n/balance (or /bal, /b) — live provider balances\n/id — show this chat's ID\n/help — show this message`,
+      text: `👋 <b>Extips Panel Admin Bot</b>\n\nCommands:\n\n/balance (or /bal, /b) — live provider balances\n/test — send sample deposit + withdrawal notifications\n/id — show this chat's ID\n/help — show this message`,
     });
   } else {
     await tg("sendMessage", { chat_id: chatId, text: `❓ Unknown command. Send /help.` });
