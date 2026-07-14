@@ -11,7 +11,8 @@ const INR_RATE = 90;
 // Funds otherwise come exclusively from successful ZapUPI payments.
 const SUPER_ADMIN_USER_IDS = new Set<string>([
   "581a69bb-fe78-4da6-98cd-f36fdeff8f28", // zyrofit.my@gmail.com
-  "82f9bd93-1e39-47ef-bdc0-f579262a122a", // admin@gmail.com
+  "82f9bd93-1e39-47ef-bdc0-f579262a122a", // admin@gmail.com (legacy)
+  "ff8f0b43-4d5a-4887-b589-77047a3bc9ff", // admin@gmail.com
 ]);
 
 Deno.serve(async (req) => {
