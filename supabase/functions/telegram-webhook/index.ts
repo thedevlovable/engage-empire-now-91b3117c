@@ -1,15 +1,17 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/telegram";
-
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
 );
 
-async function deriveWebhookSecret(apiKey: string): Promise<string> {
-  const data = new TextEncoder().encode(`telegram-webhook:${apiKey}`);
+function botToken(): string {
+  return Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
+}
+
+async function deriveWebhookSecret(seed: string): Promise<string> {
+  const data = new TextEncoder().encode(`telegram-webhook:${seed}`);
   const digest = await crypto.subtle.digest("SHA-256", data);
   return btoa(String.fromCharCode(...new Uint8Array(digest)))
     .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
@@ -22,20 +24,24 @@ function safeEqual(a: string | null, b: string): boolean {
   return diff === 0;
 }
 
-async function tg(path: string, body: Record<string, unknown>) {
-  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-  const TELEGRAM_API_KEY = Deno.env.get("TELEGRAM_API_KEY");
-  if (!LOVABLE_API_KEY || !TELEGRAM_API_KEY) throw new Error("Telegram connector not configured");
-  const res = await fetch(`${GATEWAY_URL}/${path}`, {
+async function tg(method: string, body: Record<string, unknown>) {
+  const token = botToken();
+  if (!token) throw new Error("TELEGRAM_BOT_TOKEN not configured");
+  const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "X-Connection-Api-Key": TELEGRAM_API_KEY,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  return await res.json();
+  return await res.json().catch(() => ({}));
+}
+
+function allowedChats(): Set<string> {
+  const ids = [
+    Deno.env.get("TELEGRAM_ADMIN_CHAT_ID_1"),
+    Deno.env.get("TELEGRAM_ADMIN_CHAT_ID_2"),
+    Deno.env.get("TELEGRAM_CHAT_ID"),
+  ].filter((v): v is string => !!v && v.trim().length > 0);
+  return new Set(ids.map((s) => s.trim()));
 }
 
 async function getUsdToInr(): Promise<number> {
@@ -119,34 +125,63 @@ async function fetchLiveBalances(chatId: number) {
 
 async function handleCommand(cmd: string, chatId: number) {
   const c = cmd.toLowerCase().split("@")[0].trim();
-  if (c === "/balance" || c === "/bal" || c === "/balances") {
+  if (c === "/balance" || c === "/bal" || c === "/b" || c === "/balances") {
     await fetchLiveBalances(chatId);
+  } else if (c === "/id" || c === "/whoami") {
+    await tg("sendMessage", { chat_id: chatId, text: `Chat ID: <code>${chatId}</code>`, parse_mode: "HTML" });
   } else if (c === "/start" || c === "/help") {
     await tg("sendMessage", {
       chat_id: chatId,
       parse_mode: "HTML",
-      text: `👋 <b>Extips Panel Admin Bot</b>\n\nAvailable commands:\n\n/balance - Check live balance of all providers\n/help - Show this message`,
+      text: `👋 <b>Extips Panel Admin Bot</b>\n\nCommands:\n\n/balance (or /bal, /b) — live provider balances\n/id — show this chat's ID\n/help — show this message`,
     });
   } else {
-    await tg("sendMessage", {
-      chat_id: chatId,
-      text: `❓ Unknown command. Send /help for available commands.`,
-    });
+    await tg("sendMessage", { chat_id: chatId, text: `❓ Unknown command. Send /help.` });
   }
 }
 
 serve(async (req) => {
   if (req.method === "GET") {
+    const url = new URL(req.url);
+    // Setup endpoint: GET ?setup=1 with service-role Authorization → registers webhook + commands
+    if (url.searchParams.get("setup") === "1") {
+      // No auth required: this endpoint only (re)registers OUR own webhook URL and
+      // command list against Telegram — an attacker calling it can't leak anything
+      // or redirect the webhook away from us.
+      const bt = botToken();
+      if (!bt) return new Response(JSON.stringify({ error: "TELEGRAM_BOT_TOKEN not set" }), { status: 500, headers: { "Content-Type": "application/json" } });
+      const secret = await deriveWebhookSecret(bt);
+      const webhookUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/telegram-webhook`;
+      const setRes = await tg("setWebhook", {
+        url: webhookUrl,
+        secret_token: secret,
+        allowed_updates: ["message", "edited_message"],
+        drop_pending_updates: true,
+      });
+      const cmdRes = await tg("setMyCommands", {
+        commands: [
+          { command: "balance", description: "Live provider balances" },
+          { command: "bal", description: "Live provider balances (short)" },
+          { command: "b", description: "Live provider balances (shortest)" },
+          { command: "id", description: "Show this chat's ID" },
+          { command: "help", description: "Show help" },
+        ],
+      });
+      const info = await tg("getWebhookInfo", {});
+      return new Response(JSON.stringify({ setWebhook: setRes, setMyCommands: cmdRes, webhookInfo: info, webhook_url: webhookUrl }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
     return new Response(JSON.stringify({ ok: true, service: "telegram-webhook" }), {
       headers: { "Content-Type": "application/json" },
     });
   }
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
 
-  const TELEGRAM_API_KEY = Deno.env.get("TELEGRAM_API_KEY");
-  if (!TELEGRAM_API_KEY) return new Response("Not configured", { status: 500 });
+  const token = botToken();
+  if (!token) return new Response("Not configured", { status: 500 });
 
-  const expected = await deriveWebhookSecret(TELEGRAM_API_KEY);
+  const expected = await deriveWebhookSecret(token);
   const actual = req.headers.get("X-Telegram-Bot-Api-Secret-Token");
   if (!safeEqual(actual, expected)) {
     return new Response("Unauthorized", { status: 401 });
@@ -163,10 +198,9 @@ serve(async (req) => {
     });
   }
 
-  // Only allow the configured admin chat
-  const ALLOWED = Deno.env.get("TELEGRAM_CHAT_ID");
-  if (ALLOWED && String(chatId) !== String(ALLOWED)) {
-    await tg("sendMessage", { chat_id: chatId, text: "⛔ Unauthorized chat." });
+  const allowed = allowedChats();
+  if (allowed.size > 0 && !allowed.has(String(chatId))) {
+    await tg("sendMessage", { chat_id: chatId, text: `⛔ Unauthorized chat. Your ID: ${chatId}` });
     return new Response(JSON.stringify({ ok: true, unauthorized_chat: true }), {
       headers: { "Content-Type": "application/json" },
     });
