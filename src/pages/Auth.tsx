@@ -166,7 +166,7 @@ export default function Auth() {
             <Sparkles className="w-3 h-3" /> v2.0 · Human-pattern engine
           </span>
           <h2 className="mt-6 text-[3rem] leading-[1.02] font-black tracking-[-0.03em]"
-              style={{ fontFamily: displayFont }}>
+              style={{ fontFamily: displayFont, color: '#EAF2FF' }}>
             Growth that <em style={{ fontStyle: 'italic', fontWeight: 500, color: C.aqua }}>breathes</em> like a real audience.
           </h2>
           <p className="mt-5 text-[15px] leading-[1.65]" style={{ color: C.mute }}>
@@ -210,7 +210,7 @@ export default function Auth() {
           </Link>
 
           <h1 className="text-[2.2rem] leading-[1.05] font-black tracking-[-0.02em] mb-2"
-              style={{ fontFamily: displayFont }}>
+              style={{ fontFamily: displayFont, color: '#EAF2FF' }}>
             {isForgotPassword ? 'Reset ' : isLogin ? 'Welcome ' : 'Create '}
             <em style={{ fontStyle: 'italic', fontWeight: 500, color: C.aqua }}>
               {isForgotPassword ? 'password' : isLogin ? 'back' : 'account'}

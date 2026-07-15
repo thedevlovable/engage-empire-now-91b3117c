@@ -360,7 +360,7 @@ const Index = () => {
               <Chip tone="violet"><Zap className="w-3 h-3" /> Tools you won't find elsewhere</Chip>
               <h2
                 className="mt-5 text-[2rem] sm:text-[2.75rem] lg:text-[3.25rem] leading-[1.05] font-black tracking-[-0.02em]"
-                style={{ fontFamily: displayFont }}
+                style={{ fontFamily: displayFont, color: '#EAF2FF' }}
               >
                 Tuned to move{' '}
                 <em style={{ fontStyle: 'italic', fontWeight: 500, color: C.aqua }}>like real people do.</em>
@@ -480,7 +480,7 @@ const Index = () => {
               <Chip><Sparkles className="w-3 h-3" /> How it works</Chip>
               <h2
                 className="mt-5 text-[2rem] sm:text-[2.75rem] lg:text-[3.25rem] leading-[1.05] font-black tracking-[-0.02em]"
-                style={{ fontFamily: displayFont }}
+                style={{ fontFamily: displayFont, color: '#EAF2FF' }}
               >
                 Drop one link.{' '}
                 <em style={{ fontStyle: 'italic', fontWeight: 500, color: C.violet }}>Everything else runs on its own.</em>
@@ -544,7 +544,7 @@ const Index = () => {
               <Chip><Sparkles className="w-3 h-3" /> Free onboarding</Chip>
               <h2
                 className="mt-5 text-[2rem] sm:text-[2.75rem] lg:text-[3.25rem] leading-[1.05] font-black tracking-[-0.02em]"
-                style={{ fontFamily: displayFont }}
+                style={{ fontFamily: displayFont, color: '#EAF2FF' }}
               >
                 Time to grow the{' '}
                 <em style={{ fontStyle: 'italic', fontWeight: 500, color: C.aqua }}>human way</em>?
