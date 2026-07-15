@@ -32,9 +32,9 @@ interface OrderProgressChartProps {
 
 // Distinct vibrant colors for each engagement type - easily distinguishable
 const TYPE_COLORS: Record<string, string> = {
-  views: "#3b82f6",      // Blue - Primary, most visible
-  likes: "#2563eb",      // Pink - Warm, distinct from blue
-  comments: "#3b82f6",   // Emerald Green - Cool, stands out
+  views: "#E6398A",      // Pink - Primary, matches landing
+  likes: "#F472B6",      // Light Pink - Warm, distinct
+  comments: "#F9A8D4",   // Soft Pink - Cool, stands out
   saves: "#f59e0b",      // Amber/Orange - Warm accent
   shares: "#8b5cf6",     // Violet/Purple - Distinct cool tone
   followers: "#06b6d4",  // Cyan - Fresh, tech feel

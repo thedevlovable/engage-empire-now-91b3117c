@@ -36,9 +36,9 @@ const VISIBLE_TYPES: VisibleType[] = ['views', 'likes', 'comments', 'saves', 'sh
 
 // Type colors for curves
 const TYPE_COLORS: Record<VisibleType, string> = {
-  views: '#60a5fa',
-  comments: '#93c5fd',
-  likes: '#60a5fa',
+  views: '#E6398A',
+  comments: '#F9A8D4',
+  likes: '#F472B6',
   saves: '#fbbf24',
   shares: '#a78bfa',
 };
