@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Mail, Lock, User, Loader2, ArrowLeft, Shield, Zap, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Mail, Loader2, ArrowLeft, Eye, EyeOff, ArrowRight, Sparkles, Shield, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
 import logo from '@/assets/logo.jpg';
 import { PageMeta } from '@/components/seo/PageMeta';
-
 
 const loginSchema = z.object({
   email: z.string().trim().email('Invalid email address'),
@@ -21,6 +19,22 @@ const signupSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   fullName: z.string().trim().min(2, 'Name must be at least 2 characters'),
 });
+
+const C = {
+  ink: '#05070E',
+  surface: '#0A1024',
+  surface2: '#0E1633',
+  line: 'rgba(234,242,255,.08)',
+  lineStrong: 'rgba(234,242,255,.14)',
+  paper: '#EAF2FF',
+  mute: 'rgba(234,242,255,.62)',
+  mute2: 'rgba(234,242,255,.42)',
+  blue: '#3A86FF',
+  aqua: '#00D4FF',
+  violet: '#B15CFF',
+};
+
+const displayFont = "'Fraunces', 'Times New Roman', serif";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -91,122 +105,228 @@ export default function Auth() {
     } finally { setIsSubmitting(false); }
   };
 
-  const inputClass = "h-12 rounded-xl border-[#e5e5e5] bg-white focus:border-[#1a1a2e] focus:ring-1 focus:ring-[#1a1a2e] text-[#1a1a2e] font-medium px-4 placeholder:text-[#bbb] transition-all";
+  const inputStyle: React.CSSProperties = {
+    height: 48,
+    borderRadius: 14,
+    background: 'rgba(234,242,255,.04)',
+    border: `1px solid ${C.lineStrong}`,
+    color: C.paper,
+    padding: '0 16px',
+    fontWeight: 500,
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12" style={{ background: 'linear-gradient(180deg, #fff 0%, #f0fdf4 50%, #dcfce7 100%)' }}>
+    <div
+      className="min-h-screen w-full grid lg:grid-cols-2 relative overflow-hidden"
+      style={{ background: C.ink, color: C.paper, fontFamily: "'Inter', system-ui, sans-serif" }}
+    >
       <PageMeta
         title={isLogin ? 'Sign in — Extips Panel' : 'Create your account — Extips Panel'}
         description="Sign in or create your free Extips Panel account to launch organic Instagram, YouTube and TikTok growth campaigns. No credit card required."
         canonicalPath="/auth"
       />
-      <div className="w-full max-w-[400px]">
-          {/* Logo */}
-          <div className="flex items-center justify-center gap-2.5 mb-10">
-            <img src={logo} alt="Extips Panel platform logo" className="w-10 h-10 rounded-xl object-cover shadow-sm" />
-            <div className="flex flex-col">
-              <span className="text-[16px] font-bold tracking-tight" style={{ color: '#1a1a2e' }}>Extips Panel</span>
-              <span className="text-[9px] font-semibold uppercase tracking-[0.15em]" style={{ background: 'linear-gradient(90deg, #2563eb, #f97316)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>✦ Updated Version</span>
-            </div>
+
+      {/* Fraunces */}
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700;9..144,900&display=swap"
+      />
+
+      {/* Aurora bg */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-40 -left-40 w-[700px] h-[700px] rounded-full"
+             style={{ background: `radial-gradient(closest-side, ${C.blue}55, transparent 70%)`, filter: 'blur(70px)' }} />
+        <div className="absolute bottom-[-20%] right-[-20%] w-[700px] h-[700px] rounded-full"
+             style={{ background: `radial-gradient(closest-side, ${C.violet}44, transparent 70%)`, filter: 'blur(80px)' }} />
+        <div className="absolute inset-0 opacity-[0.05]"
+             style={{
+               backgroundImage: 'linear-gradient(rgba(234,242,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(234,242,255,.6) 1px, transparent 1px)',
+               backgroundSize: '56px 56px',
+             }} />
+      </div>
+
+      {/* LEFT — brand panel */}
+      <div className="hidden lg:flex relative flex-col justify-between p-12"
+           style={{ borderRight: `1px solid ${C.line}` }}>
+        <Link to="/" className="flex items-center gap-2.5 relative z-10">
+          <div className="relative">
+            <div className="absolute -inset-1 rounded-2xl blur-md opacity-70"
+                 style={{ background: `linear-gradient(135deg, ${C.aqua}, ${C.violet})` }} />
+            <img src={logo} alt="Extips Panel" className="relative w-9 h-9 rounded-xl object-cover"
+                 style={{ border: `1px solid ${C.lineStrong}` }} />
+          </div>
+          <span className="text-[16px] font-semibold tracking-tight">
+            Extips <span style={{ color: C.aqua }}>Panel</span>
+          </span>
+        </Link>
+
+        <div className="relative z-10 max-w-md">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-[0.14em]"
+                style={{ color: C.aqua, background: 'rgba(0,212,255,.08)', border: '1px solid rgba(0,212,255,.28)' }}>
+            <Sparkles className="w-3 h-3" /> v2.0 · Human-pattern engine
+          </span>
+          <h2 className="mt-6 text-[3rem] leading-[1.02] font-black tracking-[-0.03em]"
+              style={{ fontFamily: displayFont }}>
+            Growth that <em style={{ fontStyle: 'italic', fontWeight: 500, color: C.aqua }}>breathes</em> like a real audience.
+          </h2>
+          <p className="mt-5 text-[15px] leading-[1.65]" style={{ color: C.mute }}>
+            Sign in to choreograph views, likes and comments on a rhythm no platform can flag.
+          </p>
+
+          <div className="mt-8 space-y-3">
+            {[
+              'S-curve rollout · ±50% batch variance',
+              'Peak-hour lifts · overnight ease-off',
+              'Zero bans logged across 50k+ deliveries',
+            ].map(t => (
+              <div key={t} className="flex items-start gap-2.5">
+                <CheckCircle2 className="w-4 h-4 mt-0.5" style={{ color: C.aqua }} />
+                <span className="text-[13.5px]" style={{ color: C.mute }}>{t}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative z-10 flex items-center gap-3 text-[12px]" style={{ color: C.mute2 }}>
+          <Shield className="w-3.5 h-3.5" style={{ color: C.aqua }} />
+          SSL · encrypted · GDPR-safe
+        </div>
+      </div>
+
+      {/* RIGHT — auth form */}
+      <div className="flex items-center justify-center px-5 sm:px-8 py-12 relative">
+        <div className="w-full max-w-[420px]">
+          {/* Mobile logo */}
+          <div className="lg:hidden flex items-center justify-center gap-2.5 mb-10">
+            <img src={logo} alt="Extips Panel" className="w-10 h-10 rounded-xl object-cover"
+                 style={{ border: `1px solid ${C.lineStrong}` }} />
+            <span className="text-[16px] font-semibold tracking-tight">
+              Extips <span style={{ color: C.aqua }}>Panel</span>
+            </span>
           </div>
 
-          <Link to="/" className="inline-flex items-center gap-1.5 text-[12px] font-medium mb-8" style={{ color: '#999' }}>
+          <Link to="/" className="inline-flex items-center gap-1.5 text-[12px] mb-8" style={{ color: C.mute2 }}>
             <ArrowLeft className="w-3.5 h-3.5" /> Back to home
           </Link>
 
-          <h1 className="text-2xl font-extrabold tracking-tight mb-1" style={{ color: '#1a1a2e', fontFamily: "'Outfit', system-ui, sans-serif" }}>
-            {isForgotPassword ? 'Reset password' : isLogin ? 'Welcome back' : 'Create account'}
+          <h1 className="text-[2.2rem] leading-[1.05] font-black tracking-[-0.02em] mb-2"
+              style={{ fontFamily: displayFont }}>
+            {isForgotPassword ? 'Reset ' : isLogin ? 'Welcome ' : 'Create '}
+            <em style={{ fontStyle: 'italic', fontWeight: 500, color: C.aqua }}>
+              {isForgotPassword ? 'password' : isLogin ? 'back' : 'account'}
+            </em>
           </h1>
-          <p className="text-[14px] mb-8" style={{ color: '#999' }}>
-            {isForgotPassword ? 'Enter your email to receive a reset link.' : isLogin ? 'Sign in to your account.' : 'Get started for free.'}
+          <p className="text-[14px] mb-8" style={{ color: C.mute }}>
+            {isForgotPassword ? 'Enter your email — we\'ll send a reset link.' : isLogin ? 'Sign in to your Extips Panel account.' : 'Free to start. Every tool unlocked.'}
           </p>
 
           {showVerifyEmail ? (
             <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: '#f0fdf4' }}>
-                <Mail className="w-7 h-7" style={{ color: '#3b82f6' }} />
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
+                   style={{ background: 'rgba(0,212,255,.10)', border: `1px solid rgba(0,212,255,.24)` }}>
+                <Mail className="w-7 h-7" style={{ color: C.aqua }} />
               </div>
-              <h3 className="text-xl font-bold mb-2" style={{ color: '#1a1a2e' }}>Check your inbox</h3>
-              <p className="text-[13px] mb-2" style={{ color: '#888' }}>Verification link sent to:</p>
-              <p className="text-[13px] font-semibold mb-6" style={{ color: '#1a1a2e' }}>{email}</p>
-              <button onClick={() => { setShowVerifyEmail(false); setIsLogin(true); }} className="text-[13px] font-semibold" style={{ color: '#9333ea' }}>
+              <h3 className="text-xl font-bold mb-2">Check your inbox</h3>
+              <p className="text-[13px] mb-1" style={{ color: C.mute }}>Verification link sent to:</p>
+              <p className="text-[13px] font-semibold mb-6">{email}</p>
+              <button onClick={() => { setShowVerifyEmail(false); setIsLogin(true); }}
+                      className="text-[13px] font-semibold" style={{ color: C.aqua }}>
                 ← Back to login
               </button>
             </div>
           ) : (
             <form onSubmit={isForgotPassword ? handleForgotPassword : handleSubmit} className="space-y-4">
               {isForgotPassword ? (
-                <div className="space-y-4">
+                <>
                   <div>
-                    <Label className="text-[12px] font-semibold mb-1.5 block" style={{ color: '#555', textTransform: 'none', letterSpacing: 'normal' }}>Email</Label>
-                    <Input type="email" placeholder="name@example.com" value={email} onChange={e => setEmail(e.target.value)} className={inputClass} />
+                    <Label className="text-[12px] font-semibold mb-1.5 block" style={{ color: C.mute, textTransform: 'none', letterSpacing: 'normal' }}>Email</Label>
+                    <Input type="email" placeholder="name@example.com" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
                   </div>
-                  {error && <p className="text-[13px] font-medium" style={{ color: '#ef4444' }}>{error}</p>}
-                  {successMessage && <p className="text-[13px] font-medium" style={{ color: '#3b82f6' }}>{successMessage}</p>}
-                  <button type="submit" disabled={isSubmitting} className="w-full h-11 rounded-xl text-[13px] font-semibold text-white flex items-center justify-center gap-2" style={{ background: '#1a1a2e' }}>
+                  {error && <p className="text-[13px] font-medium" style={{ color: '#FF5D8F' }}>{error}</p>}
+                  {successMessage && <p className="text-[13px] font-medium" style={{ color: C.aqua }}>{successMessage}</p>}
+                  <button type="submit" disabled={isSubmitting}
+                          className="w-full h-12 rounded-2xl text-[14px] font-bold flex items-center justify-center gap-2 transition-transform hover:-translate-y-0.5 disabled:opacity-70"
+                          style={{
+                            background: `linear-gradient(135deg, ${C.aqua}, ${C.blue} 55%, ${C.violet})`,
+                            color: C.ink,
+                            boxShadow: `0 14px 40px ${C.blue}55`,
+                          }}>
                     {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Send reset link <ArrowRight className="w-3.5 h-3.5" /></>}
                   </button>
-                  <button type="button" onClick={() => setIsForgotPassword(false)} className="w-full text-center text-[13px] font-medium" style={{ color: '#999' }}>
+                  <button type="button" onClick={() => setIsForgotPassword(false)} className="w-full text-center text-[13px]" style={{ color: C.mute }}>
                     Back to login
                   </button>
-                </div>
+                </>
               ) : (
-                <div className="space-y-4">
+                <>
                   {!isLogin && (
                     <div>
-                      <Label className="text-[12px] font-semibold mb-1.5 block" style={{ color: '#555', textTransform: 'none', letterSpacing: 'normal' }}>Full name</Label>
-                      <Input placeholder="John Doe" value={fullName} onChange={e => setFullName(e.target.value)} className={inputClass} />
+                      <Label className="text-[12px] font-semibold mb-1.5 block" style={{ color: C.mute, textTransform: 'none', letterSpacing: 'normal' }}>Full name</Label>
+                      <Input placeholder="John Doe" value={fullName} onChange={e => setFullName(e.target.value)} style={inputStyle} />
                     </div>
                   )}
                   <div>
-                    <Label className="text-[12px] font-semibold mb-1.5 block" style={{ color: '#555', textTransform: 'none', letterSpacing: 'normal' }}>Email</Label>
-                    <Input type="email" placeholder="name@example.com" value={email} onChange={e => setEmail(e.target.value)} className={inputClass} />
+                    <Label className="text-[12px] font-semibold mb-1.5 block" style={{ color: C.mute, textTransform: 'none', letterSpacing: 'normal' }}>Email</Label>
+                    <Input type="email" placeholder="name@example.com" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <Label className="text-[12px] font-semibold" style={{ color: '#555', textTransform: 'none', letterSpacing: 'normal' }}>Password</Label>
+                      <Label className="text-[12px] font-semibold" style={{ color: C.mute, textTransform: 'none', letterSpacing: 'normal' }}>Password</Label>
                       {isLogin && (
-                        <button type="button" onClick={() => setIsForgotPassword(true)} className="text-[11px] font-medium" style={{ color: '#9333ea' }}>
+                        <button type="button" onClick={() => setIsForgotPassword(true)} className="text-[11px] font-medium" style={{ color: C.aqua }}>
                           Forgot password?
                         </button>
                       )}
                     </div>
                     <div className="relative">
-                      <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} className={`${inputClass} pr-11`} />
-                      <button type="button" aria-label="Toggle password visibility" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2" style={{ color: '#bbb' }}>
+                      <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)}
+                             style={{ ...inputStyle, paddingRight: 44 }} />
+                      <button type="button" aria-label="Toggle password visibility" onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3.5 top-1/2 -translate-y-1/2" style={{ color: C.mute2 }}>
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
 
-                  {error && <p className="text-[13px] font-medium" style={{ color: '#ef4444' }}>{error}</p>}
-                  {successMessage && <p className="text-[13px] font-medium" style={{ color: '#3b82f6' }}>{successMessage}</p>}
+                  {error && <p className="text-[13px] font-medium" style={{ color: '#FF5D8F' }}>{error}</p>}
+                  {successMessage && <p className="text-[13px] font-medium" style={{ color: C.aqua }}>{successMessage}</p>}
 
-                  <button type="submit" disabled={isSubmitting} className="w-full h-11 rounded-xl text-[13px] font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-70" style={{ background: '#1a1a2e' }}>
+                  <button type="submit" disabled={isSubmitting}
+                          className="w-full h-12 rounded-2xl text-[14px] font-bold flex items-center justify-center gap-2 transition-transform hover:-translate-y-0.5 disabled:opacity-70"
+                          style={{
+                            background: `linear-gradient(135deg, ${C.aqua}, ${C.blue} 55%, ${C.violet})`,
+                            color: C.ink,
+                            boxShadow: `0 14px 40px ${C.blue}55`,
+                          }}>
                     {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>{isLogin ? 'Sign in' : 'Create account'} <ArrowRight className="w-3.5 h-3.5" /></>}
                   </button>
 
-                  <p className="text-center text-[13px]" style={{ color: '#999' }}>
+                  <p className="text-center text-[13px]" style={{ color: C.mute }}>
                     {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                    <button type="button" onClick={() => { setIsLogin(!isLogin); setError(''); setSuccessMessage(''); }} className="font-semibold" style={{ color: '#9333ea' }}>
+                    <button type="button" onClick={() => { setIsLogin(!isLogin); setError(''); setSuccessMessage(''); }}
+                            className="font-semibold" style={{ color: C.aqua }}>
                       {isLogin ? 'Sign up' : 'Sign in'}
                     </button>
                   </p>
-                </div>
+                </>
               )}
             </form>
           )}
 
           {/* Telegram */}
-          <a href="https://t.me/Extipsguide" target="_blank" rel="noopener noreferrer" className="mt-8 flex items-center gap-3 p-3.5 rounded-xl transition-colors" style={{ border: '1px solid rgba(0,0,0,.06)', background: 'white' }}>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#0088cc15' }}>
-              <svg className="w-4 h-4 fill-[#0088cc]" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.39.52-.46-.01-1.33-.26-1.98-.48-.8-.27-1.43-.42-1.37-.89.03-.25.38-.51 1.03-.78 4.04-1.76 6.74-2.92 8.09-3.48 3.85-1.61.8-1.88 1.77-1.88.21 0 .69.05.99.23.32.19.43.46.46.72.02.16.01.32-.01.48z" /></svg>
+          <a href="https://t.me/Extipsguide" target="_blank" rel="noopener noreferrer"
+             className="mt-8 flex items-center gap-3 p-3.5 rounded-2xl transition-colors"
+             style={{ border: `1px solid ${C.lineStrong}`, background: 'rgba(234,242,255,.03)' }}>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center"
+                 style={{ background: 'rgba(0,136,204,.15)' }}>
+              <svg className="w-4 h-4 fill-[#3ab3f4]" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.39.52-.46-.01-1.33-.26-1.98-.48-.8-.27-1.43-.42-1.37-.89.03-.25.38-.51 1.03-.78 4.04-1.76 6.74-2.92 8.09-3.48 3.85-1.61.8-1.88 1.77-1.88.21 0 .69.05.99.23.32.19.43.46.46.72.02.16.01.32-.01.48z" /></svg>
             </div>
             <div>
-              <p className="text-[12px] font-semibold" style={{ color: '#1a1a2e' }}>Join our Telegram</p>
-              <p className="text-[11px]" style={{ color: '#999' }}>Updates & support</p>
+              <p className="text-[13px] font-semibold" style={{ color: C.paper }}>Join our Telegram</p>
+              <p className="text-[11.5px]" style={{ color: C.mute2 }}>Updates & support</p>
             </div>
           </a>
+        </div>
       </div>
     </div>
   );
