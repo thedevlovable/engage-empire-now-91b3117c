@@ -208,45 +208,134 @@ const HeroScene: React.FC = () => (
       </motion.div>
     ))}
 
-    {/* Floating engagement chip badges */}
-    <motion.div
-      className="absolute flex items-center gap-2 px-3 py-2 rounded-full"
-      style={{
-        top: '8%', left: '2%',
-        background: C.paper, border: `1px solid ${C.line}`, boxShadow: '0 12px 30px rgba(11,31,75,.08)',
-      }}
-      animate={{ y: [0, -6, 0] }}
-      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-    >
-      <Eye className="w-3.5 h-3.5" style={{ color: C.navy }} />
-      <span className="text-[11px] font-semibold" style={{ color: C.navy }}>+2,410 views</span>
-    </motion.div>
-
-    <motion.div
-      className="absolute flex items-center gap-2 px-3 py-2 rounded-full"
-      style={{
-        top: '32%', right: '-4%',
-        background: C.paper, border: `1px solid ${C.line}`, boxShadow: '0 12px 30px rgba(11,31,75,.08)',
-      }}
-      animate={{ y: [0, 6, 0] }}
-      transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-    >
-      <Heart className="w-3.5 h-3.5" style={{ color: C.magenta }} />
-      <span className="text-[11px] font-semibold" style={{ color: C.navy }}>+318 likes</span>
-    </motion.div>
-
-    <motion.div
-      className="absolute flex items-center gap-2 px-3 py-2 rounded-full"
-      style={{
-        bottom: '10%', right: '4%',
-        background: C.paper, border: `1px solid ${C.line}`, boxShadow: '0 12px 30px rgba(11,31,75,.08)',
-      }}
-      animate={{ y: [0, -5, 0] }}
-      transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1.6 }}
-    >
-      <Sparkles className="w-3.5 h-3.5" style={{ color: C.gold }} />
-      <span className="text-[11px] font-semibold" style={{ color: C.navy }}>Zero bans</span>
-    </motion.div>
+    {/* Floating engagement chips — each icon has its own micro-animation */}
+    {([
+      {
+        pos: { top: '4%', left: '0%' },
+        label: '+2,410 views',
+        color: C.navy,
+        float: [0, -6, 0],
+        dur: 4,
+        delay: 0,
+        icon: (
+          <motion.span
+            animate={{ scale: [1, 1.25, 1], opacity: [0.7, 1, 0.7] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+            className="inline-flex"
+          >
+            <Eye className="w-3.5 h-3.5" style={{ color: C.navy }} />
+          </motion.span>
+        ),
+      },
+      {
+        pos: { top: '22%', right: '-6%' },
+        label: '+318 likes',
+        color: C.magenta,
+        float: [0, 6, 0],
+        dur: 4.5,
+        delay: 0.6,
+        icon: (
+          <motion.span
+            animate={{ scale: [1, 1.35, 1] }}
+            transition={{ duration: 1, repeat: Infinity, ease: 'easeOut', repeatDelay: 0.4 }}
+            className="inline-flex"
+          >
+            <Heart className="w-3.5 h-3.5" fill={C.magenta} style={{ color: C.magenta }} />
+          </motion.span>
+        ),
+      },
+      {
+        pos: { top: '46%', left: '-4%' },
+        label: '+92 comments',
+        color: C.navy,
+        float: [0, -5, 0],
+        dur: 5,
+        delay: 1.1,
+        icon: (
+          <motion.span
+            animate={{ rotate: [-8, 8, -8] }}
+            transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+            className="inline-flex origin-bottom"
+          >
+            <MessageCircle className="w-3.5 h-3.5" style={{ color: C.navy }} />
+          </motion.span>
+        ),
+      },
+      {
+        pos: { top: '58%', right: '-8%' },
+        label: '+204 saves',
+        color: C.gold,
+        float: [0, 5, 0],
+        dur: 4.8,
+        delay: 1.6,
+        icon: (
+          <motion.span
+            animate={{ y: [0, -3, 0], scale: [1, 1.15, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+            className="inline-flex"
+          >
+            <Bookmark className="w-3.5 h-3.5" fill={C.gold} style={{ color: C.gold }} />
+          </motion.span>
+        ),
+      },
+      {
+        pos: { bottom: '14%', left: '2%' },
+        label: '+147 shares',
+        color: C.navy,
+        float: [0, -6, 0],
+        dur: 5.2,
+        delay: 2.1,
+        icon: (
+          <motion.span
+            animate={{ x: [0, 3, 0], rotate: [0, 12, 0] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+            className="inline-flex"
+          >
+            <Share2 className="w-3.5 h-3.5" style={{ color: C.navy }} />
+          </motion.span>
+        ),
+      },
+      {
+        pos: { bottom: '2%', right: '6%' },
+        label: '+68 reposts',
+        color: C.magenta,
+        float: [0, -5, 0],
+        dur: 5.4,
+        delay: 2.6,
+        icon: (
+          <motion.span
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
+            className="inline-flex"
+          >
+            <Shuffle className="w-3.5 h-3.5" style={{ color: C.magenta }} />
+          </motion.span>
+        ),
+      },
+    ] as const).map((chip, i) => (
+      <motion.div
+        key={i}
+        className="absolute flex items-center gap-2 px-3 py-2 rounded-full"
+        style={{
+          ...chip.pos,
+          background: C.paper,
+          border: `1px solid ${C.line}`,
+          boxShadow: '0 12px 30px rgba(11,31,75,.08)',
+        }}
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{ opacity: 1, scale: 1, y: chip.float as unknown as number[] }}
+        transition={{
+          opacity: { duration: 0.5, delay: chip.delay * 0.3 },
+          scale: { duration: 0.5, delay: chip.delay * 0.3 },
+          y: { duration: chip.dur, repeat: Infinity, ease: 'easeInOut', delay: chip.delay },
+        }}
+      >
+        {chip.icon}
+        <span className="text-[11px] font-semibold whitespace-nowrap" style={{ color: C.navy }}>
+          {chip.label}
+        </span>
+      </motion.div>
+    ))}
   </div>
 );
 
