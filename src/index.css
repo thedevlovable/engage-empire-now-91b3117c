@@ -19,47 +19,49 @@ input[type="number"] {
 
 @layer base {
   :root {
-    /* ════ CLEAN LIGHT PINK THEME ════ */
-    --background: 30 20% 98%;
-    --foreground: 240 20% 12%;
+    /* ════ CREAM STUDIO — matches landing page ════ */
+    /* cream #FAF6EF, navy #0B1F4B, magenta #E6398A, gold #F5B700 */
+    --background: 39 47% 96%;
+    --foreground: 224 74% 17%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 20% 12%;
+    --card-foreground: 224 74% 17%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 20% 12%;
+    --popover-foreground: 224 74% 17%;
 
-    --primary: 217 91% 60%;
+    --primary: 330 78% 56%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 30 15% 95%;
-    --secondary-foreground: 240 20% 12%;
+    --secondary: 39 40% 92%;
+    --secondary-foreground: 224 74% 17%;
 
-    --muted: 30 15% 95%;
-    --muted-foreground: 240 5% 50%;
+    --muted: 39 40% 92%;
+    --muted-foreground: 224 20% 40%;
 
-    --accent: 217 91% 60%;
+    --accent: 330 78% 56%;
     --accent-foreground: 0 0% 100%;
 
-    --success: 217 91% 60%;
+    --success: 158 55% 42%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 46 100% 48%;
+    --warning-foreground: 224 74% 17%;
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 30 10% 90%;
-    --input: 30 10% 90%;
-    --ring: 217 91% 60%;
+    --border: 224 30% 90%;
+    --input: 224 30% 90%;
+    --ring: 330 78% 56%;
 
     --radius: 1rem;
 
-    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.04);
-    --shadow-glow: 0 0 30px rgba(59,130,246, 0.12);
+    --shadow-soft: 0 8px 24px rgba(11, 31, 75, 0.06);
+    --shadow-glow: 0 12px 30px rgba(230, 57, 138, 0.18);
   }
 }
+
 
 html {
   font-size: 16px;
