@@ -198,13 +198,62 @@ const HeroScene: React.FC = () => (
         }}
       >
         <svg viewBox="0 0 100 100" className="w-full h-full">
-          {/* isometric box */}
-          <path d="M 50 20 L 90 40 L 50 60 L 10 40 Z" fill="url(#box)" stroke="rgba(11,31,75,.15)" />
-          <path d="M 10 40 L 10 70 L 50 90 L 50 60 Z" fill="url(#boxSide)" stroke="rgba(11,31,75,.15)" />
-          <path d="M 50 60 L 90 40 L 90 70 L 50 90 Z" fill="#B78949" stroke="rgba(11,31,75,.15)" />
-          {/* label */}
-          <text x="30" y="76" fontSize="9" fill="#5C3E14" fontWeight="700" transform="rotate(-16 30 76)">extips</text>
+          {/* Money stack — isometric bundle of cash */}
+          <defs>
+            <linearGradient id={`cashTop-${i}`} x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0%" stopColor="#B6E7C9" />
+              <stop offset="100%" stopColor="#4CAF7A" />
+            </linearGradient>
+            <linearGradient id={`cashSide-${i}`} x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#F6E7A8" />
+              <stop offset="100%" stopColor="#D9B84A" />
+            </linearGradient>
+          </defs>
+          {/* stacked bill layers on the side (gives thickness) */}
+          {[0, 1, 2, 3].map(k => (
+            <g key={k}>
+              <path
+                d={`M 10 ${44 + k * 6} L 50 ${64 + k * 6} L 50 ${68 + k * 6} L 10 ${48 + k * 6} Z`}
+                fill="#F1D874"
+                stroke="rgba(11,31,75,.18)"
+                strokeWidth="0.5"
+              />
+              <path
+                d={`M 50 ${64 + k * 6} L 90 ${44 + k * 6} L 90 ${48 + k * 6} L 50 ${68 + k * 6} Z`}
+                fill="#C79A2E"
+                stroke="rgba(11,31,75,.18)"
+                strokeWidth="0.5"
+              />
+            </g>
+          ))}
+          {/* top bill face (green) */}
+          <path d="M 50 20 L 90 40 L 50 60 L 10 40 Z" fill={`url(#cashTop-${i})`} stroke="rgba(11,31,75,.25)" />
+          {/* inner border */}
+          <path
+            d="M 50 26 L 84 40 L 50 54 L 16 40 Z"
+            fill="none"
+            stroke="#0B1F4B"
+            strokeOpacity="0.35"
+            strokeWidth="0.8"
+          />
+          {/* $ medallion */}
+          <circle cx="50" cy="40" r="7.5" fill="#FFF9E6" stroke="#0B1F4B" strokeOpacity="0.5" strokeWidth="0.8" />
+          <text
+            x="50"
+            y="43.5"
+            textAnchor="middle"
+            fontSize="10"
+            fontWeight="900"
+            fill="#0B1F4B"
+            fontFamily="'Fraunces', serif"
+          >
+            $
+          </text>
+          {/* paper band wrapping the stack */}
+          <path d="M 34 44 L 50 52 L 66 44 L 66 50 L 50 58 L 34 50 Z" fill="#E6398A" opacity="0.95" />
+          <path d="M 34 44 L 50 52 L 50 58 L 34 50 Z" fill="#C71E75" />
         </svg>
+
       </motion.div>
     ))}
 
