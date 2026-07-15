@@ -82,12 +82,13 @@ html {
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', system-ui, sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.03em;
+    font-family: 'Fraunces', 'Times New Roman', serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     color: hsl(var(--foreground));
     text-shadow: none;
   }
+
 
   label, .label {
     font-family: 'Inter', system-ui, sans-serif;
