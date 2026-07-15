@@ -134,7 +134,7 @@ export default function ZapUpiDepositCard() {
         </div>
         <div
           className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold"
-          style={{ background: 'rgba(59,130,246,.08)', color: '#2563eb', border: '1px solid rgba(59,130,246,.18)' }}
+          style={{ background: 'rgba(230,57,138,.08)', color: '#E6398A', border: '1px solid rgba(230,57,138,.18)' }}
         >
           <ShieldCheck className="h-3 w-3" /> SECURE
         </div>
