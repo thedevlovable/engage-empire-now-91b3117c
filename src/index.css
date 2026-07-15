@@ -98,9 +98,10 @@ html {
   }
 
   ::selection {
-    background: hsla(160,84%,39%, 0.22);
+    background: hsla(330, 78%, 56%, 0.22);
     color: hsl(var(--foreground));
   }
+
 }
 
 @layer components {
