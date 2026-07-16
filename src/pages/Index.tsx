@@ -91,8 +91,10 @@ const Index = () => {
           <div className="hidden md:flex items-center gap-8 text-[13px]" style={{ color: C.slate }}>
             <a href="#features" className="hover:opacity-70 transition-opacity">Features</a>
             <a href="#how-it-works" className="hover:opacity-70 transition-opacity">How it works</a>
+            <a href="#how-to-use" className="hover:opacity-70 transition-opacity">How to use</a>
             <a href="#why" className="hover:opacity-70 transition-opacity">Why</a>
           </div>
+
           <div className="flex items-center gap-2">
             <Link
               to="/auth"
@@ -389,33 +391,94 @@ const Index = () => {
           </div>
         </section>
 
-        {/* ══════ CTA ══════ */}
-        <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-10">
-          <div
-            className="max-w-4xl mx-auto rounded-[32px] text-center py-14 sm:py-20 px-6 sm:px-10 relative overflow-hidden"
-            style={{
-              background: `linear-gradient(135deg, ${C.paper} 0%, ${C.blueSoft} 100%)`,
-              border: `1px solid ${C.line}`,
-              boxShadow: '0 20px 60px rgba(37,99,235,.14)',
-            }}
-          >
-            <div className="relative">
-              <h2 className="text-[2rem] sm:text-[2.75rem] font-black tracking-[-0.02em]" style={{ color: C.ink }}>
-                Ready to grow organically?
+        {/* ══════ HOW TO USE ══════ */}
+        <section id="how-to-use" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-10">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <span
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-[0.14em]"
+                style={{ color: C.blueDark, background: C.blueSoft, border: `1px solid ${C.line}` }}
+              >
+                <FileText className="w-3 h-3" /> How to use
+              </span>
+              <h2 className="mt-5 text-[2rem] sm:text-[2.75rem] font-black tracking-[-0.02em]" style={{ color: C.ink }}>
+                A simple guide to your first campaign.
               </h2>
-              <p className="mt-4 max-w-md mx-auto text-[15px]" style={{ color: C.slate }}>
-                Thousands of creators are already scaling with human-pattern delivery.
+              <p className="mt-4 text-[14px] max-w-xl mx-auto" style={{ color: C.slate }}>
+                Follow these five steps — from sign up to live delivery. Takes about 60 seconds.
               </p>
+            </div>
+
+            <div className="space-y-3 sm:space-y-4">
+              {[
+                {
+                  n: '1',
+                  title: 'Create your free account',
+                  desc: 'Sign up with email — no card needed. You land straight on the dashboard.',
+                },
+                {
+                  n: '2',
+                  title: 'Add funds to your wallet',
+                  desc: 'Open Wallet, pick UPI or crypto, top up any amount. Balance is instant.',
+                },
+                {
+                  n: '3',
+                  title: 'Paste your post link',
+                  desc: 'Go to Engagement Order, drop any Instagram, YouTube or TikTok URL.',
+                },
+                {
+                  n: '4',
+                  title: 'Pick views, likes, comments & more',
+                  desc: 'Toggle each engagement type on and set the quantity. Preview shows exact rollout.',
+                },
+                {
+                  n: '5',
+                  title: 'Place order & track live',
+                  desc: 'Hit Place Order — the engine drips it out on a human pattern. Watch it grow in real-time.',
+                },
+              ].map((s) => (
+                <div
+                  key={s.n}
+                  className="flex items-start gap-4 sm:gap-5 rounded-2xl p-5 sm:p-6"
+                  style={{
+                    background: C.paper,
+                    border: `1px solid ${C.line}`,
+                    boxShadow: '0 4px 20px rgba(15,23,42,.04)',
+                  }}
+                >
+                  <div
+                    className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-[15px] font-black"
+                    style={{ background: C.blue, color: '#fff', boxShadow: `0 6px 16px ${C.blue}44` }}
+                  >
+                    {s.n}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-[15px] sm:text-[16px] font-bold mb-1" style={{ color: C.ink }}>
+                      {s.title}
+                    </h3>
+                    <p className="text-[13px] leading-relaxed" style={{ color: C.slate }}>
+                      {s.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-10 text-center">
               <Link
                 to="/auth"
-                className="mt-8 inline-flex h-12 px-8 rounded-full text-[14px] font-bold items-center gap-2 transition-transform hover:-translate-y-0.5"
-                style={{ background: C.blue, color: '#fff', boxShadow: `0 14px 30px ${C.blue}55` }}
+                className="inline-flex h-12 px-8 rounded-full text-[14px] font-bold items-center gap-2 transition-transform hover:-translate-y-0.5"
+                style={{ background: C.blue, color: '#fff', boxShadow: `0 12px 28px ${C.blue}55` }}
               >
-                Sign Up Free <ArrowRight className="w-4 h-4" />
+                Start your first campaign <ArrowRight className="w-4 h-4" />
               </Link>
+              <p className="mt-3 text-[12px]" style={{ color: C.slateLight }}>
+                Free to start · Ready in 60 seconds
+              </p>
             </div>
           </div>
         </section>
+
       </main>
 
       {/* ══════ FOOTER ══════ */}
