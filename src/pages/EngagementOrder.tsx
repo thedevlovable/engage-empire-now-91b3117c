@@ -776,13 +776,13 @@ export default function EngagementOrder() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-6">
           <Card className={cn(
             "glass-card border-2 transition-all duration-300 relative overflow-hidden",
-            isOrganicMode ? "border-success/40 bg-success/5 shadow-[0_0_30px_rgba(37,99,235,0.1)]" : "border-border"
+            isOrganicMode ? "border-[#2563EB]/40 bg-[#2563EB]/5 shadow-[0_0_30px_rgba(37,99,235,0.1)]" : "border-border"
           )}>
             <CardContent className="p-2.5 sm:p-4 flex items-center justify-between gap-2 sm:gap-3">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <div className={cn(
                   "w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center transition-all shadow-inner shrink-0",
-                  isOrganicMode ? "bg-success text-white" : "bg-secondary text-muted-foreground"
+                  isOrganicMode ? "bg-[#2563EB] text-white" : "bg-secondary text-muted-foreground"
                 )}>
                   <Brain className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </div>
@@ -791,16 +791,16 @@ export default function EngagementOrder() {
                     <h3 className="text-[13px] sm:text-sm font-black text-foreground tracking-tight">AI Organic Algorithm</h3>
                     <Badge variant="outline" className={cn(
                       "text-[8px] sm:text-[9px] font-black uppercase tracking-wider border-none px-1.5 py-0 whitespace-nowrap",
-                      isOrganicMode ? "bg-success text-white" : "bg-muted text-muted-foreground"
+                      isOrganicMode ? "bg-[#2563EB] text-white" : "bg-muted text-muted-foreground"
                     )}>
                       {isOrganicMode ? "ON" : "OFF"}
                     </Badge>
                   </div>
                   <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium mb-1.5">AI generates UNIQUE organic patterns for each order automatically</p>
                   <div className="flex flex-wrap gap-1">
-                    <Badge variant="outline" className="bg-success/10 text-[8px] sm:text-[9px] text-success border-success/20 font-bold py-0 px-1.5">✓ Unique S-curve</Badge>
-                    <Badge variant="outline" className="bg-success/10 text-[8px] sm:text-[9px] text-success border-success/20 font-bold py-0 px-1.5">✓ Random variance</Badge>
-                    <Badge variant="outline" className="bg-success/10 text-[8px] sm:text-[9px] text-success border-success/20 font-bold py-0 px-1.5">✓ Anti-bot</Badge>
+                    <Badge variant="outline" className="bg-[#2563EB]/10 text-[8px] sm:text-[9px] text-[#1D4ED8] border-[#2563EB]/20 font-bold py-0 px-1.5">✓ Unique S-curve</Badge>
+                    <Badge variant="outline" className="bg-[#2563EB]/10 text-[8px] sm:text-[9px] text-[#1D4ED8] border-[#2563EB]/20 font-bold py-0 px-1.5">✓ Random variance</Badge>
+                    <Badge variant="outline" className="bg-[#2563EB]/10 text-[8px] sm:text-[9px] text-[#1D4ED8] border-[#2563EB]/20 font-bold py-0 px-1.5">✓ Anti-bot</Badge>
                   </div>
                 </div>
               </div>
@@ -811,7 +811,7 @@ export default function EngagementOrder() {
                     setIsOrganicMode(val);
                     if (val) setIsAutoRatios(false); // turn off the other
                   }}
-                  className="data-[state=checked]:bg-success"
+                  className="data-[state=checked]:bg-[#2563EB]"
                 />
               </div>
             </CardContent>
