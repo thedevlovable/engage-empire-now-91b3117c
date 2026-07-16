@@ -379,7 +379,7 @@ export default function Auth() {
               <p className="text-[11.5px]" style={{ color: C.slate }}>Updates & support</p>
             </div>
           </a>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
