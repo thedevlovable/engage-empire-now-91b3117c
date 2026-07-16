@@ -19,47 +19,48 @@ input[type="number"] {
 
 @layer base {
   :root {
-    /* ════ CREAM STUDIO — matches landing page ════ */
-    /* cream #FAF6EF, navy #0B1F4B, magenta #E6398A, gold #F5B700 */
-    --background: 39 47% 96%;
-    --foreground: 224 74% 17%;
+    /* ════ SKY BLUE — matches landing page ════ */
+    /* bg #EAF2FF, navy #0F172A, primary blue #2563EB */
+    --background: 220 100% 96%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 224 74% 17%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 74% 17%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 330 78% 56%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 39 40% 92%;
-    --secondary-foreground: 224 74% 17%;
+    --secondary: 214 95% 93%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 39 40% 92%;
-    --muted-foreground: 224 20% 40%;
+    --muted: 214 95% 93%;
+    --muted-foreground: 222 20% 40%;
 
-    --accent: 330 78% 56%;
+    --accent: 221 83% 53%;
     --accent-foreground: 0 0% 100%;
 
     --success: 158 55% 42%;
     --success-foreground: 0 0% 100%;
 
     --warning: 46 100% 48%;
-    --warning-foreground: 224 74% 17%;
+    --warning-foreground: 222 47% 11%;
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 224 30% 90%;
-    --input: 224 30% 90%;
-    --ring: 330 78% 56%;
+    --border: 214 60% 88%;
+    --input: 214 60% 88%;
+    --ring: 221 83% 53%;
 
     --radius: 1rem;
 
-    --shadow-soft: 0 8px 24px rgba(11, 31, 75, 0.06);
-    --shadow-glow: 0 12px 30px rgba(230, 57, 138, 0.18);
+    --shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.06);
+    --shadow-glow: 0 12px 30px rgba(37, 99, 235, 0.18);
   }
+
 }
 
 
@@ -98,7 +99,7 @@ html {
   }
 
   ::selection {
-    background: hsla(330, 78%, 56%, 0.22);
+    background: hsla(221, 83%, 53%, 0.22);
     color: hsl(var(--foreground));
   }
 
@@ -124,21 +125,22 @@ html {
 
   .gradient-text {
     @apply bg-clip-text text-transparent font-extrabold;
-    background-image: linear-gradient(135deg, hsl(330 78% 56%), hsl(224 74% 17%));
+    background-image: linear-gradient(135deg, hsl(221 83% 53%), hsl(222 47% 11%));
   }
 
   /* ════ BUTTONS ════ */
   .btn-3d {
     @apply relative overflow-hidden font-bold rounded-xl flex items-center justify-center transition-all duration-200;
-    background: linear-gradient(135deg, hsl(330 78% 56%), hsl(330 78% 46%));
+    background: linear-gradient(135deg, hsl(221 83% 53%), hsl(224 76% 45%));
     color: white;
-    box-shadow: 0 8px 22px rgba(230,57,138, 0.28);
+    box-shadow: 0 8px 22px rgba(37,99,235, 0.28);
   }
 
   .btn-3d:hover {
     transform: translateY(-1px);
-    box-shadow: 0 12px 30px rgba(230,57,138, 0.38);
+    box-shadow: 0 12px 30px rgba(37,99,235, 0.38);
   }
+
 
   .btn-3d:active { transform: translateY(0); }
 
@@ -167,7 +169,7 @@ html {
   }
 
   .glow-neon {
-    box-shadow: 0 0 16px rgba(230,57,138, 0.14);
+    box-shadow: 0 0 16px rgba(37,99,235, 0.14);
   }
 
   /* Chrome autofill fix */
@@ -175,8 +177,9 @@ html {
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 100px hsl(39 47% 96%) inset !important;
-    -webkit-text-fill-color: hsl(224 74% 17%) !important;
+    -webkit-box-shadow: 0 0 0 100px hsl(220 100% 96%) inset !important;
+    -webkit-text-fill-color: hsl(222 47% 11%) !important;
+
     transition: background-color 5000s ease-in-out 0s;
   }
 
