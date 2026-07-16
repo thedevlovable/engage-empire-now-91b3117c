@@ -21,16 +21,16 @@ interface CurveControlPointProps {
 
 // Type colors for control points
 const TYPE_COLORS: Record<string, string> = {
-  views: '#E6398A',
-  likes: '#F472B6',
-  comments: '#F9A8D4',
+  views: '#2563EB',
+  likes: '#60A5FA',
+  comments: '#93C5FD',
   saves: '#fbbf24',
   shares: '#a78bfa',
   followers: '#818cf8',
   subscribers: '#f87171',
   watch_hours: '#fb923c',
   retweets: '#2dd4bf',
-  reposts: '#F472B6',
+  reposts: '#60A5FA',
 };
 
 export const CurveControlPoint = forwardRef<HTMLDivElement, CurveControlPointProps>(

@@ -28,8 +28,8 @@ const C = {
   cream: '#FAF6EF',
   cream2: '#F1EBDE',
   navy: '#0B1F4B',
-  magenta: '#E6398A',
-  magentaSoft: '#FCE7F1',
+  magenta: '#2563EB',
+  magentaSoft: '#DBEAFE',
   gold: '#F5B700',
   slate: '#6B7280',
   line: 'rgba(11,31,75,.08)',
@@ -53,7 +53,7 @@ const BrandScene = () => (
           <stop offset="100%" stopColor="#D9D0BC" />
         </linearGradient>
         <linearGradient id="a-magenta" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#F154A0" />
+          <stop offset="0%" stopColor="#3B82F6" />
           <stop offset="100%" stopColor={C.magenta} />
         </linearGradient>
       </defs>
@@ -74,7 +74,7 @@ const BrandScene = () => (
       <path d="M 320 240 L 320 410 L 380 380 L 380 210 Z" fill="url(#a-shopSide)" stroke="rgba(11,31,75,.06)" />
 
       <path d="M 215 255 Q 215 226 240 238 L 240 348 L 215 336 Z" fill="url(#a-magenta)" />
-      <path d="M 240 238 Q 240 208 265 220 L 265 358 L 240 348 Z" fill="#C71E75" opacity="0.85" />
+      <path d="M 240 238 Q 240 208 265 220 L 265 358 L 240 348 Z" fill="#1D4ED8" opacity="0.85" />
 
       {/* awning */}
       <path d="M 320 240 L 380 210 L 380 232 L 320 262 Z" fill="#FFFFFF" />
