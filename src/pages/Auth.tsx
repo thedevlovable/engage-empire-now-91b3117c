@@ -25,17 +25,18 @@ const signupSchema = z.object({
 });
 
 const C = {
-  cream: '#FAF6EF',
-  cream2: '#F1EBDE',
-  navy: '#0B1F4B',
+  cream: '#EAF2FF',
+  cream2: '#DCE8FF',
+  navy: '#0F172A',
   magenta: '#2563EB',
   magentaSoft: '#DBEAFE',
   gold: '#F5B700',
-  slate: '#6B7280',
-  line: 'rgba(11,31,75,.08)',
-  lineStrong: 'rgba(11,31,75,.14)',
+  slate: '#475569',
+  line: 'rgba(15,23,42,.08)',
+  lineStrong: 'rgba(15,23,42,.14)',
   paper: '#FFFFFF',
 };
+
 
 const displayFont = "'Fraunces', 'Times New Roman', serif";
 
@@ -189,8 +190,9 @@ export default function Auth() {
   return (
     <div
       className="min-h-screen w-full grid lg:grid-cols-2 relative overflow-hidden"
-      style={{ background: C.cream, color: C.navy, fontFamily: "'Inter', system-ui, sans-serif" }}
+      style={{ background: `linear-gradient(180deg, #EAF2FF 0%, #DCE8FF 55%, #C7DAFB 100%)`, color: C.navy, fontFamily: "'Inter', system-ui, sans-serif" }}
     >
+
       <PageMeta
         title={isLogin ? 'Sign in — Extips Panel' : 'Create your account — Extips Panel'}
         description="Sign in or create your free Extips Panel account to launch organic Instagram, YouTube and TikTok growth campaigns."
