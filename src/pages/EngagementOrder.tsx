@@ -819,13 +819,13 @@ export default function EngagementOrder() {
 
           <Card className={cn(
             "glass-card border-2 transition-all duration-300 relative overflow-hidden",
-            isAutoRatios ? "border-primary/40 bg-primary/5 shadow-[0_0_30px_rgba(155,135,245,0.1)]" : "border-border"
+            isAutoRatios ? "border-[#60A5FA]/40 bg-[#60A5FA]/5 shadow-[0_0_30px_rgba(96,165,250,0.12)]" : "border-border"
           )}>
             <CardContent className="p-2.5 sm:p-4 flex items-center justify-between gap-2 sm:gap-3">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <div className={cn(
                   "w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center transition-all shadow-inner shrink-0",
-                  isAutoRatios ? "bg-primary text-white" : "bg-secondary text-muted-foreground"
+                  isAutoRatios ? "bg-[#2563EB] text-white" : "bg-secondary text-muted-foreground"
                 )}>
                   <Percent className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </div>
@@ -834,7 +834,7 @@ export default function EngagementOrder() {
                     <h3 className="text-[13px] sm:text-sm font-black text-foreground tracking-tight">AI Smart Ratios</h3>
                     <Badge variant="outline" className={cn(
                       "text-[8px] sm:text-[9px] font-black uppercase tracking-wider border-none px-1.5 py-0 whitespace-nowrap",
-                      isAutoRatios ? "bg-primary text-white" : "bg-muted text-muted-foreground"
+                      isAutoRatios ? "bg-[#2563EB] text-white" : "bg-muted text-muted-foreground"
                     )}>
                       {isAutoRatios ? "AUTO" : "MANUAL"}
                     </Badge>
@@ -842,7 +842,7 @@ export default function EngagementOrder() {
                   <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium mb-1.5">AI automatically calculates organic engagement ratios</p>
                   <div className="flex flex-wrap gap-1">
                     {isAutoRatios ? (
-                      <Badge variant="outline" className="bg-primary/10 text-[8px] sm:text-[9px] text-primary border-primary/20 font-bold py-0 px-1.5 italic">Optimized for algorithms</Badge>
+                      <Badge variant="outline" className="bg-[#2563EB]/10 text-[8px] sm:text-[9px] text-[#1D4ED8] border-[#2563EB]/20 font-bold py-0 px-1.5 italic">Optimized for algorithms</Badge>
                     ) : (
                       <Badge variant="outline" className="bg-amber-500/10 text-[8px] sm:text-[9px] text-amber-500 border-amber-500/20 font-bold py-0 px-1.5">Customized by User</Badge>
                     )}
@@ -856,6 +856,7 @@ export default function EngagementOrder() {
                     setIsAutoRatios(val);
                     if (val) setIsOrganicMode(false); // turn off the other
                   }}
+                  className="data-[state=checked]:bg-[#2563EB]"
                 />
               </div>
             </CardContent>
