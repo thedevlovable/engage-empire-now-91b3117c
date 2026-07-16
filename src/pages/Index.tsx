@@ -120,7 +120,7 @@ const Index = () => {
 
       <main>
         {/* ══════ HERO — simple centered ══════ */}
-        <section className="relative pt-16 sm:pt-24 pb-24 sm:pb-32 px-4 sm:px-6">
+        <section className="relative pt-16 sm:pt-24 pb-10 sm:pb-14 px-4 sm:px-6">
           {/* Sparkle dots */}
           <div aria-hidden className="absolute inset-0 overflow-hidden pointer-events-none">
             {[
