@@ -754,7 +754,7 @@ export default function EngagementOrder() {
       <PageMeta title="New Engagement Order" description="Place a natural, AI-organic engagement order — Instagram, YouTube, or TikTok views, likes, and comments delivered on a real growth curve." canonicalPath="/engagement-order" noIndex />
       <div className="max-w-5xl mx-auto px-2 sm:px-6 lg:px-8 space-y-3 sm:space-y-6 pb-8">
         {/* Header with gradient - Compact on mobile */}
-        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl p-2.5 sm:p-4 lg:p-5" style={{ background: 'linear-gradient(135deg, #0F172A, #2563EB, #F5B700)', boxShadow: '0 8px 32px rgba(37,99,235,.25)' }}>
+        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl p-2.5 sm:p-4 lg:p-5" style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1D4ED8 55%, #2563EB 100%)', boxShadow: '0 8px 32px rgba(37,99,235,.25)' }}>
           <div className="relative z-10 text-center">
             <div className="inline-flex items-center gap-2 mb-1.5">
               <div className="w-7 h-7 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,.2)', backdropFilter: 'blur(8px)' }}>
