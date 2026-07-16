@@ -75,43 +75,50 @@ export function DeliveryPreview({ engagements, refreshKey = 0, platform = 'insta
 
     const baseStartTime = new Date();
     
-    // DELIVERY SEQUENCING: Views first, then other types with realistic delays
-    // Priority order: Views (0) → Likes → Comments → Saves → Shares → others
+    // DELIVERY SEQUENCING: strictly ordered — each type starts AFTER the previous one.
+    // Priority (lower = earlier): Views → Likes → Comments → Saves/Shares → Followers …
+    // This mirrors real organic growth: a post first gets impressions, then reactions,
+    // then discussion, then re-distribution and follows.
     const TYPE_PRIORITY: Partial<Record<EngagementType, number>> = {
       views: 0,
-      likes: 1,
-      comments: 2,
-      saves: 3,
+      watch_hours: 1,   // watch time grows alongside views
+      likes: 2,
+      comments: 3,
       shares: 4,
-      followers: 5,
-      subscribers: 6,
-      watch_hours: 7,
       retweets: 4,
       reposts: 5,
+      saves: 6,
+      subscribers: 7,
+      followers: 8,
     };
-    
-    // Delay offsets from Views start (in minutes) - randomized for organic feel
-    const TYPE_DELAY_FROM_VIEWS: Partial<Record<EngagementType, { min: number; max: number }>> = {
-      views: { min: 0, max: 0 },           // Views start immediately
-      likes: { min: 15, max: 45 },         // Likes: 15-45 min after views
-      comments: { min: 30, max: 90 },      // Comments: 30-90 min after views
-      saves: { min: 45, max: 120 },        // Saves: 45-120 min after views
-      shares: { min: 35, max: 100 },       // Shares: 35-100 min after views
-      followers: { min: 60, max: 150 },    // Followers: 60-150 min after views
-      subscribers: { min: 50, max: 130 },  // Subscribers: 50-130 min after views
-      watch_hours: { min: 20, max: 60 },   // Watch hours: 20-60 min after views
-      retweets: { min: 25, max: 80 },      // Retweets: 25-80 min after views
-      reposts: { min: 30, max: 90 },       // Reposts: 30-90 min after views
+
+    // Random GAP added between one type's start and the NEXT type's start (minutes).
+    // Because we add cumulatively, order is guaranteed — no more overlap surprises.
+    const TYPE_STEP_GAP_MINUTES: Partial<Record<EngagementType, { min: number; max: number }>> = {
+      views: { min: 0, max: 0 },
+      watch_hours: { min: 4, max: 10 },
+      likes: { min: 12, max: 28 },
+      comments: { min: 18, max: 40 },
+      shares: { min: 15, max: 35 },
+      retweets: { min: 15, max: 35 },
+      reposts: { min: 12, max: 30 },
+      saves: { min: 15, max: 35 },
+      subscribers: { min: 20, max: 45 },
+      followers: { min: 25, max: 55 },
     };
-    
+
     // Sort by priority so views are processed first
-    const sortedTypes = [...enabledTypes].sort((a, b) => 
+    const sortedTypes = [...enabledTypes].sort((a, b) =>
       (TYPE_PRIORITY[a.type] ?? 10) - (TYPE_PRIORITY[b.type] ?? 10)
     );
-    
+
     // Track when views actually start/end so other engagement types can follow the same window
     let viewsStartTime = baseStartTime;
     let viewsDurationHours = 0;
+    // Rolling anchor — start of the previously scheduled type. Guarantees monotonic ordering.
+    let prevTypeStartTime = baseStartTime;
+
+
     
     // Generate individual schedule for each type with SEQUENCED start times
     const schedules: FullOrganicConfig[] = sortedTypes.map(({ type, config }) => {
@@ -124,16 +131,17 @@ export function DeliveryPreview({ engagements, refreshKey = 0, platform = 'insta
         ? Math.max(viewsDurationHours, 0.25)
         : rawTimeLimitHours;
       
-      // Calculate start time based on type priority and views anchor
+      // Calculate start time — strictly after the previous type's start (monotonic).
       let typeStartTime: Date;
       if (type === 'views') {
         typeStartTime = baseStartTime;
       } else {
-        // Anchor to views start + random delay offset
-        const delayConfig = TYPE_DELAY_FROM_VIEWS[type] ?? { min: 30, max: 90 };
-        const delayMinutes = delayConfig.min + Math.random() * (delayConfig.max - delayConfig.min);
-        typeStartTime = new Date(viewsStartTime.getTime() + delayMinutes * 60 * 1000);
+        const gapCfg = TYPE_STEP_GAP_MINUTES[type] ?? { min: 15, max: 40 };
+        const gapMinutes = gapCfg.min + Math.random() * (gapCfg.max - gapCfg.min);
+        typeStartTime = new Date(prevTypeStartTime.getTime() + gapMinutes * 60 * 1000);
       }
+      prevTypeStartTime = typeStartTime;
+
       
       // Check if we have custom curve points for this type
       const curvePoints = customCurvePoints?.[type];
