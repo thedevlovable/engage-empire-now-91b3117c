@@ -334,7 +334,7 @@ const Index = () => {
                     EXTIPSINGHT<span style={{ color: '#3B82F6' }}>PRO</span>
                   </h3>
                   <p className="mt-2 text-[13px] sm:text-[14px]" style={{ color: '#CBD5E1' }}>
-                    Insight Editor ke andar sab kuch edit karo — Instagram & TikTok traffic, highlights, feed %, gender, graphs & engagement controls. Clean professional dashboard. Simple, smooth aur powerful all-in-one editing app.
+                    Edit everything inside Insight Editor — Instagram & TikTok traffic, highlights, feed percentage, gender, graphs & engagement controls. Clean professional dashboard. Simple, smooth and powerful all-in-one editing app.
                   </p>
 
                 </div>
