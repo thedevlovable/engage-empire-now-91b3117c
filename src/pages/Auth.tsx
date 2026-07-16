@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+
 import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -88,25 +88,22 @@ const BrandScene = () => (
       <path d="M 320 262 L 380 232 L 372 250 L 325 274 Z" fill={C.magenta} opacity="0.7" />
     </svg>
 
-    {/* Floating chips */}
-    <motion.div
+    {/* Floating chips (static) */}
+    <div
       className="absolute flex items-center gap-2 px-3 py-2 rounded-full"
       style={{ top: '10%', left: '2%', background: C.paper, border: `1px solid ${C.line}`, boxShadow: '0 12px 30px rgba(11,31,75,.08)' }}
-      animate={{ y: [0, -6, 0] }}
-      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
     >
       <Heart className="w-3.5 h-3.5" style={{ color: C.magenta }} />
       <span className="text-[11px] font-semibold" style={{ color: C.navy }}>+318 likes</span>
-    </motion.div>
-    <motion.div
+    </div>
+    <div
       className="absolute flex items-center gap-2 px-3 py-2 rounded-full"
       style={{ bottom: '18%', right: '2%', background: C.paper, border: `1px solid ${C.line}`, boxShadow: '0 12px 30px rgba(11,31,75,.08)' }}
-      animate={{ y: [0, 6, 0] }}
-      transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
     >
       <Sparkles className="w-3.5 h-3.5" style={{ color: C.gold }} />
       <span className="text-[11px] font-semibold" style={{ color: C.navy }}>Human-pattern</span>
-    </motion.div>
+    </div>
+
   </div>
 );
 
@@ -256,12 +253,10 @@ export default function Auth() {
 
       {/* RIGHT — auth form */}
       <div className="flex items-center justify-center px-5 sm:px-8 py-12 relative">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
+        <div
           className="w-full max-w-[420px]"
         >
+
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center justify-center gap-2.5 mb-10">
             <img src={logo} alt="Extips Panel" className="w-10 h-10 rounded-xl object-cover"
@@ -384,7 +379,7 @@ export default function Auth() {
               <p className="text-[11.5px]" style={{ color: C.slate }}>Updates & support</p>
             </div>
           </a>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
