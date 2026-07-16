@@ -131,16 +131,17 @@ export function DeliveryPreview({ engagements, refreshKey = 0, platform = 'insta
         ? Math.max(viewsDurationHours, 0.25)
         : rawTimeLimitHours;
       
-      // Calculate start time based on type priority and views anchor
+      // Calculate start time — strictly after the previous type's start (monotonic).
       let typeStartTime: Date;
       if (type === 'views') {
         typeStartTime = baseStartTime;
       } else {
-        // Anchor to views start + random delay offset
-        const delayConfig = TYPE_DELAY_FROM_VIEWS[type] ?? { min: 30, max: 90 };
-        const delayMinutes = delayConfig.min + Math.random() * (delayConfig.max - delayConfig.min);
-        typeStartTime = new Date(viewsStartTime.getTime() + delayMinutes * 60 * 1000);
+        const gapCfg = TYPE_STEP_GAP_MINUTES[type] ?? { min: 15, max: 40 };
+        const gapMinutes = gapCfg.min + Math.random() * (gapCfg.max - gapCfg.min);
+        typeStartTime = new Date(prevTypeStartTime.getTime() + gapMinutes * 60 * 1000);
       }
+      prevTypeStartTime = typeStartTime;
+
       
       // Check if we have custom curve points for this type
       const curvePoints = customCurvePoints?.[type];
