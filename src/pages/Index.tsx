@@ -229,7 +229,7 @@ const Index = () => {
         </section>
 
         {/* ══════ FEATURES ══════ */}
-        <section id="features" className="py-16 sm:py-24 px-4 sm:px-6 lg:px-10">
+        <section id="features" className="py-10 sm:py-14 px-4 sm:px-6 lg:px-10">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <span
