@@ -68,9 +68,9 @@ interface ChartDataPoint {
 
 // Distinct vibrant colors for each engagement type (exception to monochrome theme for indicators)
 const TYPE_COLORS: Record<VisibleType, string> = {
-  views: "#E6398A",    // Pink-500
-  comments: "#F9A8D4", // Pink-300
-  likes: "#F472B6",    // Pink-400
+  views: "#2563EB",    // Pink-500
+  comments: "#93C5FD", // Pink-300
+  likes: "#60A5FA",    // Pink-400
   saves: "#fbbf24",    // Amber-400
   shares: "#a78bfa",   // Violet-400
 };

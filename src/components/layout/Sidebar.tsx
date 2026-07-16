@@ -34,7 +34,7 @@ export function Sidebar({ onClose }: SidebarProps) {
           <img src={logo} alt="Extips Panel platform logo" className="w-9 h-9 rounded-xl object-cover shadow-sm" />
           <div className="flex flex-col">
             <span className="text-[15px] font-bold tracking-tight leading-tight" style={{ color: '#1a1a2e' }}>Extips Panel</span>
-            <span className="text-[9px] font-semibold uppercase tracking-[0.15em] leading-tight" style={{ background: 'linear-gradient(90deg, #E6398A, #f97316)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>✦ Updated Version</span>
+            <span className="text-[9px] font-semibold uppercase tracking-[0.15em] leading-tight" style={{ background: 'linear-gradient(90deg, #2563EB, #3B82F6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>✦ Updated Version</span>
           </div>
         </Link>
         <button onClick={onClose} aria-label="Close sidebar" className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg" style={{ color: '#ccc' }}>
@@ -45,7 +45,7 @@ export function Sidebar({ onClose }: SidebarProps) {
       {/* User info */}
       {profile && (
           <div className="mx-4 mb-3 flex items-center gap-2.5 px-3 py-2.5 rounded-xl" style={{ background: '#f0fdf4', border: '1px solid #dcfce7' }}>
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: '#E6398A' }}>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0" style={{ background: '#2563EB' }}>
             {profile.full_name?.[0]?.toUpperCase() || 'U'}
           </div>
           <div className="min-w-0 flex-1">
@@ -57,13 +57,13 @@ export function Sidebar({ onClose }: SidebarProps) {
 
       {/* Wallet */}
         <div className="mx-4 mb-4">
-        <div className="rounded-xl p-4" style={{ background: 'linear-gradient(135deg, #fdf2f8, #fce7f3)', border: '1px solid #fbcfe8' }}>
+        <div className="rounded-xl p-4" style={{ background: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)', border: '1px solid #BFDBFE' }}>
           <div className="flex items-center gap-1.5 mb-1.5">
-            <Wallet className="w-3 h-3" style={{ color: '#E6398A' }} />
-            <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: '#E6398A' }}>Wallet Balance</span>
+            <Wallet className="w-3 h-3" style={{ color: '#2563EB' }} />
+            <span className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: '#2563EB' }}>Wallet Balance</span>
           </div>
           <p className="text-[22px] font-extrabold tracking-tight mb-3" style={{ color: '#1a1a2e' }}>{formatPrice(wallet?.balance || 0)}</p>
-          <Link to="/wallet" onClick={onClose} className="flex items-center justify-center gap-1.5 w-full h-8 rounded-lg text-[11px] font-semibold text-white" style={{ background: '#E6398A' }}>
+          <Link to="/wallet" onClick={onClose} className="flex items-center justify-center gap-1.5 w-full h-8 rounded-lg text-[11px] font-semibold text-white" style={{ background: '#2563EB' }}>
             <Wallet className="w-3 h-3" /> Add Funds
           </Link>
         </div>
@@ -80,15 +80,15 @@ export function Sidebar({ onClose }: SidebarProps) {
                 isActive ? 'font-semibold' : 'hover:bg-pink-50/60'
               )}
               style={{
-                background: isActive ? '#fdf2f8' : 'transparent',
+                background: isActive ? '#EFF6FF' : 'transparent',
                 color: isActive ? '#9d174d' : '#666',
-                border: isActive ? '1px solid #fbcfe8' : '1px solid transparent',
+                border: isActive ? '1px solid #BFDBFE' : '1px solid transparent',
               }}
             >
-              <item.icon className="w-4 h-4" style={{ color: isActive ? '#E6398A' : '#bbb' }} />
+              <item.icon className="w-4 h-4" style={{ color: isActive ? '#2563EB' : '#bbb' }} />
               <span className="flex-1">{item.label}</span>
               {(item as any).highlight && !isActive && (
-                <span className="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: '#fce7f3', color: '#E6398A' }}>HOT</span>
+                <span className="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: '#DBEAFE', color: '#2563EB' }}>HOT</span>
               )}
             </Link>
           );
@@ -133,11 +133,11 @@ export function Sidebar({ onClose }: SidebarProps) {
       <div className="px-3 pb-1">
         <a href="https://t.me/Extipsguide" target="_blank" rel="noopener noreferrer"
           className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12px] font-medium transition-colors hover:bg-pink-50/60"
-          style={{ background: '#fdf2f8', border: '1px solid #fbcfe8', color: '#E6398A' }}>
+          style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', color: '#2563EB' }}>
           <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
           <div className="flex flex-col">
             <span className="font-semibold text-[11px]" style={{ color: '#C53078' }}>Join our Telegram</span>
-            <span className="text-[10px]" style={{ color: '#F9A8D4' }}>Updates & support</span>
+            <span className="text-[10px]" style={{ color: '#93C5FD' }}>Updates & support</span>
           </div>
         </a>
       </div>
