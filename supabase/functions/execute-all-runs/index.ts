@@ -45,7 +45,7 @@ async function inlineRefreshRunStatus(supabase: SupabaseClient, run: any): Promi
     formData.append('order', String(run.provider_order_id))
 
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 8000)
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
     let result: any
     try {
       const response = await fetch(acct.api_url, {
@@ -1149,7 +1149,7 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
         message.includes('active order on link')
     }
 
-    const allEngagementRuns = [...pendingRunsLimitedPerItem, ...retryRunsLimitedPerItem].sort((a: any, b: any) => {
+    let allEngagementRuns = [...pendingRunsLimitedPerItem, ...retryRunsLimitedPerItem].sort((a: any, b: any) => {
       const aBusy = isDeprioritizedBusyRun(a) ? 1 : 0
       const bBusy = isDeprioritizedBusyRun(b) ? 1 : 0
       if (aBusy !== bBusy) return aBusy - bBusy
@@ -1175,15 +1175,38 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
       }
     }
 
+    // ---- PRE-LOOP CACHES (throughput): these used to run once PER RUN, which
+    // made a single invocation spend its whole time slice on 1-2 runs. ----
+    const fiveMinAgoGlobal = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+    const { data: recentCompletedRunsAll } = await supabase
+      .from('organic_run_schedule')
+      .select('provider_account_id, engagement_order_item:engagement_order_items(engagement_type, engagement_order:engagement_orders(link))')
+      .eq('status', 'completed')
+      .not('provider_account_id', 'is', null)
+      .gte('completed_at', fiveMinAgoGlobal)
+      .limit(500)
+
+    const priorFailedByItem = new Map<string, any[]>()
+    // Hard cap on inline provider status polls (each can block up to 8s).
+    let inlineRefreshBudget = 8
+
+    // Stagger the starting point so parallel invocations don't all fight over
+    // the same head-of-queue runs (which caused "already claimed" loops).
+    if (allEngagementRuns.length > 1) {
+      const offset = Math.floor(Math.random() * allEngagementRuns.length)
+      allEngagementRuns = allEngagementRuns.slice(offset).concat(allEngagementRuns.slice(0, offset))
+    }
+
     // Process each engagement run
     for (const run of allEngagementRuns) {
-      // Timeout guard: if we've been running for 50s, stop to avoid edge function timeout
-      if (Date.now() - startTime > 50000) {
+      // Timeout guard: stop before the edge function hard limit
+      if (Date.now() - startTime > 95000) {
         shouldContinue = true
         continuationReason = 'engagement-time-slice-exhausted'
         console.log(`⏰ Approaching timeout (${Date.now() - startTime}ms), stopping processing. Remaining runs will be picked up next cycle.`)
         break
       }
+
 
       // FAST SKIP: If we already know this link+type has "active order" on all providers, skip immediately
       const runLink = normalizeLink(run.engagement_order_item?.engagement_order?.link)
@@ -1412,13 +1435,19 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
       // FALLBACK: Also exclude any provider_account_id that already failed/cancelled
       // for this SAME engagement_order_item (prevents same-provider repeat across retries).
       try {
-        const { data: priorFailedForItem } = await supabase
-          .from('organic_run_schedule')
-          .select('id, provider_account_id, error_message, provider_status, status')
-          .eq('engagement_order_item_id', item.id)
-          .in('status', ['failed', 'cancelled'])
-          .not('provider_account_id', 'is', null)
-          .limit(200)
+        let priorFailedForItem = priorFailedByItem.get(item.id)
+        if (!priorFailedForItem) {
+          const { data } = await supabase
+            .from('organic_run_schedule')
+            .select('id, provider_account_id, error_message, provider_status, status')
+            .eq('engagement_order_item_id', item.id)
+            .in('status', ['failed', 'cancelled'])
+            .not('provider_account_id', 'is', null)
+            .limit(200)
+          priorFailedForItem = data || []
+          priorFailedByItem.set(item.id, priorFailedForItem)
+        }
+
         if (priorFailedForItem) {
           for (const pr of priorFailedForItem as any[]) {
             // Exclude only providers that CANCELLED/REFUNDED previously on this item.
@@ -1449,14 +1478,9 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
       
       // ROUND-ROBIN: Prefer a different provider after a recent completion,
       // but do NOT hard-block the just-used provider.
-      // Otherwise next run can get stuck even after the previous one is completed.
-      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-      const { data: recentCompletedRuns } = await supabase
-        .from('organic_run_schedule')
-        .select('provider_account_id, engagement_order_item:engagement_order_items(engagement_type, engagement_order:engagement_orders(link))')
-        .eq('status', 'completed')
-        .not('provider_account_id', 'is', null)
-        .gte('completed_at', fiveMinAgo)
+      // Uses the pre-loop snapshot instead of a per-run query.
+      const recentCompletedRuns = recentCompletedRunsAll
+
       
       const recentCompletedAccountIds = new Set<string>()
       if (recentCompletedRuns) {
@@ -1473,7 +1497,12 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
         for (let stuckRun of startedRunsForLink) {
           // INLINE STATUS REFRESH: don't trust stale DB status — re-poll provider live so we
           // never block the next run just because check-order-status cron hasn't run yet.
-          stuckRun = await inlineRefreshRunStatus(supabase, stuckRun)
+          // Budgeted: each poll can block up to 8s, so cap them per invocation.
+          if (inlineRefreshBudget > 0) {
+            inlineRefreshBudget--
+            stuckRun = await inlineRefreshRunStatus(supabase, stuckRun)
+          }
+
           const terminalStatuses = ['Completed', 'Complete', 'Partial', 'Refunded', 'Canceled', 'Cancelled', 'Error', 'Failed', 'Success', 'Refund', 'Canscelled']
           const isTerminal = stuckRun.provider_status && terminalStatuses.includes(stuckRun.provider_status)
           const hasNoRemains = typeof stuckRun.provider_remains === 'number' && stuckRun.provider_remains <= 0 && !!stuckRun.provider_order_id
@@ -2111,7 +2140,7 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
     console.log(`Found ${legacyRuns?.length || 0} pending legacy runs`)
 
     for (const run of legacyRuns || []) {
-      if (Date.now() - startTime > 55000) {
+      if (Date.now() - startTime > 120000) {
         shouldContinue = true
         continuationReason = continuationReason || 'legacy-time-slice-exhausted'
         console.log(`⏰ Approaching timeout, stopping legacy processing.`)
