@@ -250,7 +250,7 @@ export function PopupAdDialog() {
     };
 
     fetchOnce();
-    const poll = setInterval(fetchOnce, 12_000);
+    const poll = setInterval(fetchOnce, 120_000);
 
     return () => {
       cancelled = true;

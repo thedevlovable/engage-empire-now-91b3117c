@@ -129,7 +129,7 @@ export default function AdminChat() {
       if (error) throw error;
       return data as ChatConversation[];
     },
-    refetchInterval: 5000,
+    refetchInterval: 30000,
   });
 
   // Fetch messages for selected conversation
@@ -157,7 +157,7 @@ export default function AdminChat() {
       return data as ChatMessage[];
     },
     enabled: !!selectedConversation,
-    refetchInterval: 2000,
+    refetchInterval: 10000,
   });
 
   // Subscribe to realtime for new messages

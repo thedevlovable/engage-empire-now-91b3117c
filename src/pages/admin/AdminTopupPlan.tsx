@@ -93,7 +93,7 @@ export default function AdminTopupPlan() {
       return (data || []) as BreakdownRow[];
     },
     staleTime: 0,
-    refetchInterval: 15000, // poll every 15s as fallback
+    refetchInterval: 60000, // poll every 60s as fallback
     refetchOnWindowFocus: true,
   });
 
@@ -105,7 +105,7 @@ export default function AdminTopupPlan() {
       return (data || []) as TopUserRow[];
     },
     staleTime: 0,
-    refetchInterval: 15000,
+    refetchInterval: 60000,
     refetchOnWindowFocus: true,
   });
 

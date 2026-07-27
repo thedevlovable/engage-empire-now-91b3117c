@@ -105,7 +105,7 @@ export default function EngagementOrderDetail() {
   const [editingRun, setEditingRun] = useState<EditRunData | null>(null);
 
   // Dynamic refetch interval - balanced for performance
-  const [refetchInterval, setRefetchInterval] = useState<number | false>(5000);
+  const [refetchInterval, setRefetchInterval] = useState<number | false>(20000);
 
   const { data: order, isLoading, refetch, dataUpdatedAt } = useQuery({
     queryKey: ['engagement-order-detail', orderNumber],
@@ -119,7 +119,7 @@ export default function EngagementOrderDetail() {
           items:engagement_order_items(
             *,
             service:services(name, price, min_quantity),
-            runs:organic_run_schedule(*)
+            runs:organic_run_schedule(id, run_number, status, scheduled_at, quantity_to_send, base_quantity, variance_applied, started_at, completed_at, provider_status, provider_remains, provider_start_count, provider_order_id, provider_account_name, error_message, order_id, engagement_order_item_id)
           )
         `)
         .eq('order_number', parseInt(orderNumber))
@@ -129,7 +129,7 @@ export default function EngagementOrderDetail() {
     },
     enabled: !!orderNumber && !!user,
     refetchInterval,
-    staleTime: 2000,
+    staleTime: 15000,
     refetchOnWindowFocus: false,
     placeholderData: (prev: any) => prev, // Show previous data instantly while refetching
   });
@@ -143,13 +143,13 @@ export default function EngagementOrderDetail() {
     );
     
     if (hasActiveRuns) {
-      setRefetchInterval(5000); // 5s for orders with active runs
+      setRefetchInterval(20000); // 20s for orders with active runs
     } else if (isActive) {
-      setRefetchInterval(10000); // 10s for pending/processing
+      setRefetchInterval(45000); // 45s for pending/processing
     } else if (order.status === 'completed') {
       setRefetchInterval(false); // Stop polling for completed orders
     } else {
-      setRefetchInterval(15000); // 15s for other states
+      setRefetchInterval(60000); // 60s for other states
     }
   }, [order?.status, order?.items?.length]);
 
