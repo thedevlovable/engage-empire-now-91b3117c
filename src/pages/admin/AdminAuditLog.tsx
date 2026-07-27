@@ -32,11 +32,11 @@ export default function AdminAuditLog() {
         .from('admin_audit_log' as any)
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(500);
+        .limit(100);
       if (error) throw error;
       return (data ?? []) as unknown as AuditRow[];
     },
-    refetchInterval: 10000,
+    refetchInterval: 60000,
   });
 
   const filtered = (data ?? []).filter((r) => {
