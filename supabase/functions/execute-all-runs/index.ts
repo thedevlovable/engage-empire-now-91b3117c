@@ -1149,7 +1149,7 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
         message.includes('active order on link')
     }
 
-    const allEngagementRuns = [...pendingRunsLimitedPerItem, ...retryRunsLimitedPerItem].sort((a: any, b: any) => {
+    let allEngagementRuns = [...pendingRunsLimitedPerItem, ...retryRunsLimitedPerItem].sort((a: any, b: any) => {
       const aBusy = isDeprioritizedBusyRun(a) ? 1 : 0
       const bBusy = isDeprioritizedBusyRun(b) ? 1 : 0
       if (aBusy !== bBusy) return aBusy - bBusy
