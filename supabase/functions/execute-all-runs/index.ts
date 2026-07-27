@@ -1497,7 +1497,12 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
         for (let stuckRun of startedRunsForLink) {
           // INLINE STATUS REFRESH: don't trust stale DB status — re-poll provider live so we
           // never block the next run just because check-order-status cron hasn't run yet.
-          stuckRun = await inlineRefreshRunStatus(supabase, stuckRun)
+          // Budgeted: each poll can block up to 8s, so cap them per invocation.
+          if (inlineRefreshBudget > 0) {
+            inlineRefreshBudget--
+            stuckRun = await inlineRefreshRunStatus(supabase, stuckRun)
+          }
+
           const terminalStatuses = ['Completed', 'Complete', 'Partial', 'Refunded', 'Canceled', 'Cancelled', 'Error', 'Failed', 'Success', 'Refund', 'Canscelled']
           const isTerminal = stuckRun.provider_status && terminalStatuses.includes(stuckRun.provider_status)
           const hasNoRemains = typeof stuckRun.provider_remains === 'number' && stuckRun.provider_remains <= 0 && !!stuckRun.provider_order_id
