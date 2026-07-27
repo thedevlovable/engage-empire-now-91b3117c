@@ -2140,7 +2140,7 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
     console.log(`Found ${legacyRuns?.length || 0} pending legacy runs`)
 
     for (const run of legacyRuns || []) {
-      if (Date.now() - startTime > 55000) {
+      if (Date.now() - startTime > 120000) {
         shouldContinue = true
         continuationReason = continuationReason || 'legacy-time-slice-exhausted'
         console.log(`⏰ Approaching timeout, stopping legacy processing.`)
