@@ -105,7 +105,7 @@ export default function AdminTopupPlan() {
       return (data || []) as TopUserRow[];
     },
     staleTime: 0,
-    refetchInterval: 15000,
+    refetchInterval: 60000,
     refetchOnWindowFocus: true,
   });
 
