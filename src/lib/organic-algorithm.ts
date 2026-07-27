@@ -381,6 +381,88 @@ function finalizeUniqueRuns(
 }
 
 /**
+ * ANTI-REPEAT GUARD: hard cap on how many provider orders one engagement type
+ * may create for a single link. Too many small orders on the same link looks
+ * like a bot farm to the provider/platform (and to the user's panel history).
+ */
+const MAX_RUNS_BASE: Record<string, number> = {
+  views: 24,
+  likes: 10,
+  comments: 6,
+  saves: 6,
+  shares: 7,
+  followers: 10,
+  subscribers: 10,
+  watch_hours: 10,
+  retweets: 7,
+  reposts: 7,
+};
+
+export function getMaxRunsForType(
+  engagementType: string,
+  totalQuantity: number,
+  providerMin: number
+): number {
+  const base = MAX_RUNS_BASE[engagementType] ?? 8;
+  const ratio = totalQuantity / Math.max(1, providerMin);
+  // Allow a few extra runs for genuinely large orders (+4 per doubling above 20x min)
+  const growth = Math.max(0, Math.floor(Math.log2(Math.max(1, ratio / 20)))) * 4;
+  const byMin = Math.max(1, Math.floor(totalQuantity / Math.max(1, providerMin)));
+  return Math.max(1, Math.min(base + growth, base * 3, byMin));
+}
+
+/**
+ * Merge neighbouring runs until the schedule fits within maxRuns.
+ * Always merges the two smallest adjacent batches so the delivery curve
+ * keeps its shape while the number of provider orders drops.
+ */
+function mergeExcessRuns(runs: OrganicRunConfig[], maxRuns: number): OrganicRunConfig[] {
+  if (runs.length <= maxRuns || maxRuns < 1) return runs;
+
+  const merged = runs.map((r) => ({ ...r }));
+
+  while (merged.length > maxRuns && merged.length > 1) {
+    let bestIndex = 0;
+    let bestSum = Infinity;
+    for (let i = 0; i < merged.length - 1; i++) {
+      const sum = merged[i].quantity + merged[i + 1].quantity;
+      if (sum < bestSum) {
+        bestSum = sum;
+        bestIndex = i;
+      }
+    }
+    const keep = merged[bestIndex];
+    const drop = merged[bestIndex + 1];
+    keep.quantity += drop.quantity;
+    keep.baseQuantity = keep.quantity;
+    keep.humanBehaviorScore = Math.round((keep.humanBehaviorScore + drop.humanBehaviorScore) / 2);
+    merged.splice(bestIndex + 1, 1);
+  }
+
+  merged.forEach((r, i) => { r.runNumber = i + 1; });
+  return merged;
+}
+
+/**
+ * Cap run count then re-apply unique quantities so no two provider orders
+ * on the same link share the same quantity.
+ */
+function capAndUniquifyRuns(
+  runs: OrganicRunConfig[],
+  engagementType: string,
+  totalQuantity: number,
+  providerMin: number
+): OrganicRunConfig[] {
+  const maxRuns = getMaxRunsForType(engagementType, totalQuantity, providerMin);
+  const capped = mergeExcessRuns(runs, maxRuns);
+  if (capped.length <= 1) return capped;
+  const maxQty = Math.max(...capped.map((r) => r.quantity)) + capped.length * 3;
+  return finalizeUniqueRuns(capped, totalQuantity, providerMin, maxQty);
+}
+
+
+
+/**
  * Generate fully organic schedule for a single engagement type
  * Each type has completely independent, randomized timing
  * CRITICAL: All batches MUST be >= provider minimum (10)
@@ -597,7 +679,12 @@ export function generateOrganicSchedule(
       if (remainingForSmall <= 0) break;
     }
 
-    const finalizedRuns = finalizeUniqueRuns(runs, totalQuantity, providerMin, Math.max(providerMin + numRuns + 10, typeRunSize.max));
+    const finalizedRuns = capAndUniquifyRuns(
+      finalizeUniqueRuns(runs, totalQuantity, providerMin, Math.max(providerMin + numRuns + 10, typeRunSize.max)),
+      engagementType,
+      totalQuantity,
+      providerMin
+    );
 
     const totalDurationSmall = finalizedRuns.length > 1
       ? finalizedRuns[finalizedRuns.length - 1].scheduledAt.getTime() - finalizedRuns[0].scheduledAt.getTime()
@@ -642,7 +729,12 @@ export function generateOrganicSchedule(
     if (targetRuns > maxPossibleRuns * 0.75 && maxPossibleRuns > 2) {
       targetRuns = Math.max(2, Math.floor(maxPossibleRuns * 0.75));
     }
-    targetRuns = Math.min(300, maxPossibleRuns, Math.max(1, targetRuns));
+    targetRuns = Math.min(
+      300,
+      maxPossibleRuns,
+      getMaxRunsForType(engagementType, totalQuantity, providerMin),
+      Math.max(1, targetRuns)
+    );
 
     if (targetRuns <= 1) {
       const t = scheduleStartMs;
@@ -1192,7 +1284,12 @@ export function generateOrganicSchedule(
     }
   }
 
-  const finalizedRuns = finalizeUniqueRuns(runs, totalQuantity, providerMin, ULTRA_MAX_PER_RUN[engagementType] || scaled.ultraMax || scaled.max || providerMin + totalQuantity);
+  const finalizedRuns = capAndUniquifyRuns(
+    finalizeUniqueRuns(runs, totalQuantity, providerMin, ULTRA_MAX_PER_RUN[engagementType] || scaled.ultraMax || scaled.max || providerMin + totalQuantity),
+    engagementType,
+    totalQuantity,
+    providerMin
+  );
 
   const totalDuration = finalizedRuns.length > 1
     ? finalizedRuns[finalizedRuns.length - 1].scheduledAt.getTime() - finalizedRuns[0].scheduledAt.getTime()
@@ -1588,14 +1685,25 @@ export function generateForcedRunCountSchedule(
   runs.sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime());
   runs.forEach((r, i) => { r.runNumber = i + 1; });
 
-  const totalDuration = runs.length > 1
-    ? runs[runs.length - 1].scheduledAt.getTime() - runs[0].scheduledAt.getTime()
+  // Anti-repeat: no two provider orders on the same link share a quantity
+  const uniqueRuns = runs.length > 1
+    ? finalizeUniqueRuns(
+        runs,
+        totalQuantity,
+        providerMin,
+        Math.max(...runs.map((r) => r.quantity)) + runs.length * 3
+      )
+    : runs;
+
+  const totalDuration = uniqueRuns.length > 1
+    ? uniqueRuns[uniqueRuns.length - 1].scheduledAt.getTime() - uniqueRuns[0].scheduledAt.getTime()
     : 0;
+
 
   return {
     engagementType,
     totalQuantity,
-    runs,
+    runs: uniqueRuns,
     totalDuration,
     warnings,
     patternBreakCount: 0,
