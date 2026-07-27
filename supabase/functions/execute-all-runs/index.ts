@@ -1741,17 +1741,15 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
           }
         }
 
-        // Balance check
+        // Balance check — only skip when the account is truly out of funds (<= 0).
+        // No estimated-cost pre-block: keep sending until the provider itself
+        // rejects for insufficient funds (then rotation/failover handles it).
         const { hasBalance, balance: providerBalance } = await checkProviderBalance(selectedAccount)
         if (!hasBalance) {
-          lastError = `Provider ${selectedAccount.name} has no balance`
+          lastError = `Provider ${selectedAccount.name} has no balance (${providerBalance})`
           continue
         }
-        const estimatedCost = quantityToSend * 0.0001
-        if (providerBalance >= 0 && providerBalance < estimatedCost) {
-          lastError = `Provider ${selectedAccount.name} balance too low (${providerBalance})`
-          continue
-        }
+
 
         if (!isValidHttpUrl(selectedAccount.api_url)) {
           lastError = `Provider ${selectedAccount.name} has invalid API URL`
