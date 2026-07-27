@@ -45,7 +45,7 @@ async function inlineRefreshRunStatus(supabase: SupabaseClient, run: any): Promi
     formData.append('order', String(run.provider_order_id))
 
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 8000)
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
     let result: any
     try {
       const response = await fetch(acct.api_url, {
