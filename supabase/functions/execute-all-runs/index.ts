@@ -1777,14 +1777,22 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
         // ==========================================
         {
           const lookbackIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-          const { data: priorRuns } = await supabase
-            .from('organic_run_schedule')
-            .select('id, status, provider_status, provider_order_id, provider_account_id, provider_account_name, started_at, engagement_order_item:engagement_order_items(engagement_type, engagement_order:engagement_orders(link))')
-            .not('provider_order_id', 'is', null)
-            .eq('provider_account_id', selectedAccount.id)
-            .gte('started_at', lookbackIso)
-            .order('started_at', { ascending: false })
-            .limit(100)
+          let priorRuns: any[] | null = null
+          const cachedPrior = priorRunsCache.get(selectedAccount.id)
+          if (cachedPrior && Date.now() - cachedPrior.at < PRIOR_RUNS_TTL_MS) {
+            priorRuns = cachedPrior.rows
+          } else {
+            const { data: freshPrior } = await supabase
+              .from('organic_run_schedule')
+              .select('id, status, provider_status, provider_order_id, provider_account_id, provider_account_name, started_at, engagement_order_item:engagement_order_items(engagement_type, engagement_order:engagement_orders(link))')
+              .not('provider_order_id', 'is', null)
+              .eq('provider_account_id', selectedAccount.id)
+              .gte('started_at', lookbackIso)
+              .order('started_at', { ascending: false })
+              .limit(60)
+            priorRuns = freshPrior || []
+            priorRunsCache.set(selectedAccount.id, { at: Date.now(), rows: priorRuns })
+          }
 
           const conflictingRun = (priorRuns || []).find((pr: any) => {
             if (pr.id === run.id) return false
