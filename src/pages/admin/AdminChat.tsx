@@ -157,7 +157,7 @@ export default function AdminChat() {
       return data as ChatMessage[];
     },
     enabled: !!selectedConversation,
-    refetchInterval: 2000,
+    refetchInterval: 10000,
   });
 
   // Subscribe to realtime for new messages
