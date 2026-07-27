@@ -1685,9 +1685,20 @@ export function generateForcedRunCountSchedule(
   runs.sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime());
   runs.forEach((r, i) => { r.runNumber = i + 1; });
 
-  const totalDuration = runs.length > 1
-    ? runs[runs.length - 1].scheduledAt.getTime() - runs[0].scheduledAt.getTime()
+  // Anti-repeat: no two provider orders on the same link share a quantity
+  const uniqueRuns = runs.length > 1
+    ? finalizeUniqueRuns(
+        runs,
+        totalQuantity,
+        providerMin,
+        Math.max(...runs.map((r) => r.quantity)) + runs.length * 3
+      )
+    : runs;
+
+  const totalDuration = uniqueRuns.length > 1
+    ? uniqueRuns[uniqueRuns.length - 1].scheduledAt.getTime() - uniqueRuns[0].scheduledAt.getTime()
     : 0;
+
 
   return {
     engagementType,
