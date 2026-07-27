@@ -72,14 +72,14 @@ export default function EngagementOrders() {
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(25);
       if (error) throw error;
       return data;
     },
     enabled: !!user,
-    staleTime: 15000, // Cache for 15s
+    staleTime: 60000, // Cache for 60s
     refetchOnWindowFocus: false,
-    refetchInterval: 15000, // Refresh every 15s (was 5s)
+    refetchInterval: 60000, // Refresh every 60s (bandwidth friendly)
   });
 
   // Filter orders based on search query
