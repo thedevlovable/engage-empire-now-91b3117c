@@ -574,7 +574,62 @@ serve(async (req) => {
                 peak_multiplier: r.peak_multiplier,
                 status: 'pending'
               }))
+
+            // 🔒 HARD QUANTITY LOCK: the sum of all runs must EXACTLY equal what the
+            // user ordered/paid for. Client previews (smart ratios, edits, re-rolls)
+            // could drift above the ordered quantity, which sent extra likes/views
+            // to the link. Scale + trim here so over-delivery is impossible.
+            const previewSum = validatedEntries.reduce((s, r) => s + r.quantity_to_send, 0)
+            if (previewSum !== totalTargetQty && validatedEntries.length > 0 && previewSum > 0) {
+              const scale = totalTargetQty / previewSum
+              validatedEntries.forEach((e) => {
+                e.quantity_to_send = Math.max(providerMin, Math.round(e.quantity_to_send * scale))
+              })
+
+              // Drop trailing runs while we are still above the ordered total
+              let sum = validatedEntries.reduce((s, r) => s + r.quantity_to_send, 0)
+              while (sum > totalTargetQty && validatedEntries.length > 1) {
+                const last = validatedEntries[validatedEntries.length - 1]
+                if (sum - last.quantity_to_send >= totalTargetQty) {
+                  validatedEntries.pop()
+                  sum -= last.quantity_to_send
+                } else {
+                  break
+                }
+              }
+
+              // Absorb the remaining difference into the largest run (keeps >= providerMin)
+              let diff = totalTargetQty - validatedEntries.reduce((s, r) => s + r.quantity_to_send, 0)
+              let guard = 0
+              while (diff !== 0 && guard < 5000 && validatedEntries.length > 0) {
+                const sorted = [...validatedEntries].sort((a, b) =>
+                  diff > 0 ? a.quantity_to_send - b.quantity_to_send : b.quantity_to_send - a.quantity_to_send
+                )
+                const target = sorted[0]
+                const step = diff > 0 ? 1 : -1
+                const next = target.quantity_to_send + step
+                if (next < providerMin) break
+                target.quantity_to_send = next
+                diff -= step
+                guard++
+              }
+              if (diff !== 0) {
+                const biggest = validatedEntries.reduce((a, b) =>
+                  b.quantity_to_send > a.quantity_to_send ? b : a
+                )
+                biggest.quantity_to_send = Math.max(providerMin, biggest.quantity_to_send + diff)
+              }
+
+              validatedEntries.forEach((e, i) => {
+                e.base_quantity = e.quantity_to_send
+                e.run_number = i + 1
+              })
+
+              const lockedSum = validatedEntries.reduce((s, r) => s + r.quantity_to_send, 0)
+              console.log(`${itemTag} 🔒 Quantity lock: preview ${previewSum} → ${lockedSum}/${totalTargetQty} across ${validatedEntries.length} runs`)
+            }
           }
+
 
           if (validatedEntries.length === 0) {
             let remaining = engagement.quantity
