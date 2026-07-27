@@ -679,7 +679,12 @@ export function generateOrganicSchedule(
       if (remainingForSmall <= 0) break;
     }
 
-    const finalizedRuns = finalizeUniqueRuns(runs, totalQuantity, providerMin, Math.max(providerMin + numRuns + 10, typeRunSize.max));
+    const finalizedRuns = capAndUniquifyRuns(
+      finalizeUniqueRuns(runs, totalQuantity, providerMin, Math.max(providerMin + numRuns + 10, typeRunSize.max)),
+      engagementType,
+      totalQuantity,
+      providerMin
+    );
 
     const totalDurationSmall = finalizedRuns.length > 1
       ? finalizedRuns[finalizedRuns.length - 1].scheduledAt.getTime() - finalizedRuns[0].scheduledAt.getTime()
