@@ -1777,7 +1777,7 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
         // ==========================================
         {
           const lookbackIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-          let priorRuns: any[] | null = null
+          let priorRuns: any[] = []
           const cachedPrior = priorRunsCache.get(selectedAccount.id)
           if (cachedPrior && Date.now() - cachedPrior.at < PRIOR_RUNS_TTL_MS) {
             priorRuns = cachedPrior.rows
