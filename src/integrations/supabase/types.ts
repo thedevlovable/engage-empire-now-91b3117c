@@ -1656,6 +1656,12 @@ export type Database = {
       }
       get_admin_dashboard_stats: { Args: never; Returns: Json }
       get_admin_users_summary: { Args: never; Returns: Json }
+      get_due_engagement_run_ids: {
+        Args: { p_limit?: number }
+        Returns: {
+          id: string
+        }[]
+      }
       get_provider_topup_breakdown: {
         Args: never
         Returns: {
