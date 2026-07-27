@@ -146,8 +146,8 @@ export default function EngagementOrderDetail() {
       setRefetchInterval(20000); // 20s for orders with active runs
     } else if (isActive) {
       setRefetchInterval(45000); // 45s for pending/processing
-    } else if (order.status === 'completed') {
-      setRefetchInterval(false); // Stop polling for completed orders
+    } else if (['completed', 'cancelled', 'failed', 'partial'].includes(order.status)) {
+      setRefetchInterval(false); // Stop polling for finished orders
     } else {
       setRefetchInterval(60000); // 60s for other states
     }
