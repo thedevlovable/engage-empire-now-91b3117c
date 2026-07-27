@@ -977,6 +977,15 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
     const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString()
     const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString()
 
+    // FAIRNESS FIX: pick the oldest due run for EACH item (DISTINCT ON in SQL).
+    // Previously we fetched 250 rows ordered by last_status_check, which were
+    // usually all from the same 2-3 items — so only 2-3 runs went out per cycle
+    // while hundreds of other orders sat overdue.
+    const { data: dueRunIdRows, error: dueRunIdsError } = await supabase
+      .rpc('get_due_engagement_run_ids', { p_limit: 250 })
+    if (dueRunIdsError) console.error('get_due_engagement_run_ids error:', dueRunIdsError)
+    const dueRunIds: string[] = (dueRunIdRows || []).map((r: any) => r.id)
+
     const [
       { data: activeRuns },
       { data: globalStuckRuns },
@@ -995,18 +1004,17 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
         .select('id, run_number, started_at, provider_account_id, provider_status, provider_order_id, provider_remains, provider_start_count, quantity_to_send, retry_count')
         .eq('status', 'started')
         .or(`started_at.lt.${tenMinAgo},started_at.is.null`),
-      // 3. Pending engagement runs
-      supabase
-        .from('organic_run_schedule')
-        .select(`*, engagement_order_item:engagement_order_items!organic_run_schedule_engagement_order_item_id_fkey!inner(*, service:services(*), engagement_order:engagement_orders!inner(*))`)
-        .eq('status', 'pending')
-        .not('engagement_order_item_id', 'is', null)
-        .lte('scheduled_at', nowWithBuffer)
-        .not('engagement_order_item.status', 'in', '("paused","cancelled")')
-        .not('engagement_order_item.engagement_order.status', 'in', '("paused","cancelled")')
-        .order('last_status_check', { ascending: true, nullsFirst: true })
-        .order('scheduled_at', { ascending: true })
-        .limit(250),
+      // 3. Pending engagement runs (one per item, oldest due first)
+      dueRunIds.length > 0
+        ? supabase
+            .from('organic_run_schedule')
+            .select(`*, engagement_order_item:engagement_order_items!organic_run_schedule_engagement_order_item_id_fkey!inner(*, service:services(*), engagement_order:engagement_orders!inner(*))`)
+            .in('id', dueRunIds)
+            .eq('status', 'pending')
+            .lte('scheduled_at', nowWithBuffer)
+            .order('scheduled_at', { ascending: true })
+        : Promise.resolve({ data: [], error: null }),
+
       // 4. Failed engagement runs for retry
       supabase
         .from('organic_run_schedule')
