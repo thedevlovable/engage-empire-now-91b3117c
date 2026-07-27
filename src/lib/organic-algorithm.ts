@@ -729,7 +729,12 @@ export function generateOrganicSchedule(
     if (targetRuns > maxPossibleRuns * 0.75 && maxPossibleRuns > 2) {
       targetRuns = Math.max(2, Math.floor(maxPossibleRuns * 0.75));
     }
-    targetRuns = Math.min(300, maxPossibleRuns, Math.max(1, targetRuns));
+    targetRuns = Math.min(
+      300,
+      maxPossibleRuns,
+      getMaxRunsForType(engagementType, totalQuantity, providerMin),
+      Math.max(1, targetRuns)
+    );
 
     if (targetRuns <= 1) {
       const t = scheduleStartMs;
