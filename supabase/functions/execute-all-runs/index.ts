@@ -1478,14 +1478,9 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
       
       // ROUND-ROBIN: Prefer a different provider after a recent completion,
       // but do NOT hard-block the just-used provider.
-      // Otherwise next run can get stuck even after the previous one is completed.
-      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-      const { data: recentCompletedRuns } = await supabase
-        .from('organic_run_schedule')
-        .select('provider_account_id, engagement_order_item:engagement_order_items(engagement_type, engagement_order:engagement_orders(link))')
-        .eq('status', 'completed')
-        .not('provider_account_id', 'is', null)
-        .gte('completed_at', fiveMinAgo)
+      // Uses the pre-loop snapshot instead of a per-run query.
+      const recentCompletedRuns = recentCompletedRunsAll
+
       
       const recentCompletedAccountIds = new Set<string>()
       if (recentCompletedRuns) {
