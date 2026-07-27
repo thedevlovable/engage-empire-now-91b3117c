@@ -1849,6 +1849,23 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
           }
 
           runClaimed = true
+          // Keep the cached prior-runs list correct without re-querying:
+          // record this dispatch so later runs in this invocation see it.
+          {
+            const cp = priorRunsCache.get(selectedAccount.id)
+            if (cp) {
+              cp.rows = [{
+                id: run.id,
+                status: 'started',
+                provider_status: null,
+                provider_order_id: 'pending',
+                provider_account_id: selectedAccount.id,
+                provider_account_name: selectedAccount.name,
+                started_at: new Date().toISOString(),
+                engagement_order_item: run.engagement_order_item,
+              }, ...cp.rows]
+            }
+          }
         } else {
           await supabase.from('organic_run_schedule').update({
             error_message: `Trying ${selectedAccount.name}...`,
