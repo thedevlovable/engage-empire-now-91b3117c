@@ -1284,12 +1284,7 @@ export function generateOrganicSchedule(
     }
   }
 
-  const finalizedRuns = capAndUniquifyRuns(
-    finalizeUniqueRuns(runs, totalQuantity, providerMin, ULTRA_MAX_PER_RUN[engagementType] || scaled.ultraMax || scaled.max || providerMin + totalQuantity),
-    engagementType,
-    totalQuantity,
-    providerMin
-  );
+  const finalizedRuns = finalizeUniqueRuns(runs, totalQuantity, providerMin, ULTRA_MAX_PER_RUN[engagementType] || scaled.ultraMax || scaled.max || providerMin + totalQuantity);
 
   const totalDuration = finalizedRuns.length > 1
     ? finalizedRuns[finalizedRuns.length - 1].scheduledAt.getTime() - finalizedRuns[0].scheduledAt.getTime()
