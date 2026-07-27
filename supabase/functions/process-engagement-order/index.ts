@@ -756,6 +756,28 @@ serve(async (req) => {
             validatedEntries.forEach((e, i) => e.run_number = i + 1)
           }
 
+          // 🔒 FINAL SAFETY: never insert more than the ordered quantity (any path)
+          {
+            let overflow = validatedEntries.reduce((s, r) => s + r.quantity_to_send, 0) - totalTargetQty
+            while (overflow > 0 && validatedEntries.length > 0) {
+              const last = validatedEntries[validatedEntries.length - 1]
+              const reducible = last.quantity_to_send - providerMin
+              if (reducible >= overflow) {
+                last.quantity_to_send -= overflow
+                last.base_quantity = last.quantity_to_send
+                overflow = 0
+              } else if (validatedEntries.length > 1) {
+                overflow -= last.quantity_to_send
+                validatedEntries.pop()
+              } else {
+                last.quantity_to_send = Math.max(providerMin, totalTargetQty)
+                last.base_quantity = last.quantity_to_send
+                overflow = 0
+              }
+            }
+            validatedEntries.forEach((e, i) => { e.run_number = i + 1 })
+          }
+
           if (validatedEntries.length > 0) {
             const { error: schedErr } = await supabase.from('organic_run_schedule').insert(validatedEntries)
             if (schedErr) {
