@@ -1703,7 +1703,7 @@ export function generateForcedRunCountSchedule(
   return {
     engagementType,
     totalQuantity,
-    runs,
+    runs: uniqueRuns,
     totalDuration,
     warnings,
     patternBreakCount: 0,
