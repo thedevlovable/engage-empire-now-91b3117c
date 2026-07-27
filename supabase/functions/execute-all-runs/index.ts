@@ -729,7 +729,7 @@ async function batchPostponeEngagementRunsForLink(
     .eq('status', 'pending')
     .not('engagement_order_item_id', 'is', null)
     .lte('scheduled_at', new Date().toISOString())
-    .limit(1000)
+    .limit(400)
 
   if (dueRunsError || !dueRuns?.length) {
     if (dueRunsError) console.error('Failed to load due runs for batch postpone:', dueRunsError)
@@ -1006,7 +1006,7 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
         .not('engagement_order_item.engagement_order.status', 'in', '("paused","cancelled")')
         .order('last_status_check', { ascending: true, nullsFirst: true })
         .order('scheduled_at', { ascending: true })
-        .limit(1000),
+        .limit(250),
       // 4. Failed engagement runs for retry
       supabase
         .from('organic_run_schedule')
@@ -1021,7 +1021,8 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
         .from('organic_run_schedule')
         .select(`provider_account_id, error_message, engagement_order_item:engagement_order_items(engagement_type, engagement_order:engagement_orders(link))`)
         .eq('status', 'pending')
-        .gte('last_status_check', fifteenMinAgo),
+        .gte('last_status_check', fifteenMinAgo)
+        .limit(500),
     ])
 
     // ==========================================
@@ -1184,7 +1185,14 @@ async function processAllRuns(supabase: any, executionId: string, startTime: num
       .eq('status', 'completed')
       .not('provider_account_id', 'is', null)
       .gte('completed_at', fiveMinAgoGlobal)
-      .limit(500)
+      .limit(250)
+
+    // Egress guard: the per-run "prior runs for this provider" lookup used to
+    // fire once per run (thousands of calls/hour, each pulling 100 joined rows).
+    // Cache it per provider account for a short TTL — duplicate dispatch is
+    // still blocked at DB level by uniq_active_rotation_lock.
+    const priorRunsCache = new Map<string, { at: number; rows: any[] }>()
+    const PRIOR_RUNS_TTL_MS = 20000
 
     const priorFailedByItem = new Map<string, any[]>()
     // Hard cap on inline provider status polls (each can block up to 8s).
