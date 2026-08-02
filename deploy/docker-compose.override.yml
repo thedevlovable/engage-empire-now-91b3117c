@@ -1,0 +1,72 @@
+# Extips Panel — isolation override for a VPS that ALREADY runs another Supabase stack.
+#
+# Usage (always pass -p extips AND this file):
+#   cd /opt/extips/supabase/docker
+#   docker compose -p extips \
+#     -f docker-compose.yml \
+#     -f /opt/extips/docker-compose.override.yml up -d
+#
+# What this guarantees:
+#   * every container name gets an "extips-" prefix  -> no name collision
+#   * every published port is remapped               -> no port collision
+#   * a dedicated bridge network "extips-net"        -> no network collision
+#   * host binds live under /opt/extips/volumes      -> no data collision
+
+networks:
+  default:
+    name: extips-net
+
+services:
+  db:
+    container_name: extips-db
+    ports:
+      - "5533:5432"
+
+  kong:
+    container_name: extips-kong
+    ports:
+      - "8100:8000/tcp"
+      - "8543:8443/tcp"
+
+  auth:
+    container_name: extips-auth
+
+  rest:
+    container_name: extips-rest
+
+  realtime:
+    container_name: extips-realtime
+
+  storage:
+    container_name: extips-storage
+
+  imgproxy:
+    container_name: extips-imgproxy
+
+  meta:
+    container_name: extips-meta
+
+  functions:
+    container_name: extips-functions
+    # Edge functions ko DB/secrets sab .env se milte hain (deploy-edge-functions.sh dekh)
+    env_file:
+      - ./.env
+
+  analytics:
+    container_name: extips-analytics
+    ports:
+      - "4100:4000"
+
+  studio:
+    container_name: extips-studio
+    ports:
+      - "3100:3000"
+
+  vector:
+    container_name: extips-vector
+
+  supavisor:
+    container_name: extips-pooler
+    ports:
+      - "6643:5432"
+      - "6644:6543"
