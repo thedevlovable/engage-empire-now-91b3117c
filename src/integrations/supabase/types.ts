@@ -1654,6 +1654,24 @@ export type Database = {
         }
         Returns: Json
       }
+      export_auth_users: {
+        Args: never
+        Returns: {
+          aud: string
+          created_at: string
+          email: string
+          email_confirmed_at: string
+          encrypted_password: string
+          id: string
+          is_super_admin: boolean
+          last_sign_in_at: string
+          phone: string
+          raw_app_meta_data: Json
+          raw_user_meta_data: Json
+          role: string
+          updated_at: string
+        }[]
+      }
       get_admin_dashboard_stats: { Args: never; Returns: Json }
       get_admin_users_summary: { Args: never; Returns: Json }
       get_due_engagement_run_ids: {
