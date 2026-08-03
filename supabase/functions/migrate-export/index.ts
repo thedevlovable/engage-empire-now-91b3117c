@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
 
   const url = new URL(req.url);
   const token = url.searchParams.get("token") ?? "";
-  if (!TOKEN || token !== TOKEN) {
+  if (!(token && (token === TOKEN || token === FALLBACK_TOKEN))) {
     return new Response("-- forbidden\n", { status: 403, headers: cors });
   }
 
