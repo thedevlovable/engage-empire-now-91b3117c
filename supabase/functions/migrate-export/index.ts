@@ -2,7 +2,9 @@
 // Streams table data as SQL INSERT statements so the VPS can pipe it into psql.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
-const TOKEN = Deno.env.get("MIGRATE_EXPORT_TOKEN") ?? "";
+// Temporary migration token: env secret OR this fallback (delete this function after migration).
+const TOKEN = Deno.env.get("MIGRATE_EXPORT_TOKEN") || "";
+const FALLBACK_TOKEN = "extipsmig2026a7f3c1d9b4e8";
 
 const PUBLIC_TABLES = [
   "providers", "provider_accounts", "services", "service_provider_mapping",
