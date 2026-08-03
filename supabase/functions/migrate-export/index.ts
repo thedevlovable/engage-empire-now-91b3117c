@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
         `INSERT INTO auth.identities (id, provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at) VALUES (gen_random_uuid(), ${lit(r.id)}, ${lit(r.id)}, ${lit({ sub: r.id, email: r.email, email_verified: true, phone_verified: false })}, 'email', ${lit(r.last_sign_in_at)}, ${lit(r.created_at)}, ${lit(r.updated_at)}) ON CONFLICT (provider, provider_id) DO NOTHING;`,
       );
     }
-    lines.push("ALTER TABLE auth.users ENABLE TRIGGER ALL;", "COMMIT;", `-- exported ${rows.length} users`);
+    lines.push("SET session_replication_role = DEFAULT;", "COMMIT;", `-- exported ${rows.length} users`);
     return new Response(lines.join("\n") + "\n", { headers: cors });
   }
 
