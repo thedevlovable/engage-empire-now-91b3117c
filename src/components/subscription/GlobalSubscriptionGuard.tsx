@@ -8,8 +8,8 @@ interface GlobalSubscriptionGuardProps {
   children: React.ReactNode;
 }
 
-// Routes that are completely public (no login needed)
-const PUBLIC_ROUTES = ['/', '/auth'];
+// Routes that stay reachable during maintenance (admins need to log in + toggle it off)
+const MAINTENANCE_ALLOWED_ROUTES = ['/auth'];
 
 /**
  * ZERO-BLOCKING GLOBAL GUARD
@@ -21,13 +21,17 @@ export function GlobalSubscriptionGuard({ children }: GlobalSubscriptionGuardPro
   const { isAdmin } = useAuth();
   const { isMaintenanceMode } = useMaintenanceMode();
 
-  const isPublicRoute = useMemo(() => PUBLIC_ROUTES.includes(location.pathname), [location.pathname]);
+  const isAllowedRoute = useMemo(
+    () => MAINTENANCE_ALLOWED_ROUTES.includes(location.pathname),
+    [location.pathname]
+  );
   const isAdminRoute = useMemo(() => location.pathname.startsWith('/admin'), [location.pathname]);
-  
-  // Maintenance mode: show maintenance page to non-admin users
-  if (isMaintenanceMode && !isAdmin && !isAdminRoute && !isPublicRoute) {
+
+  // Maintenance mode: show maintenance page everywhere (incl. landing page) except /auth + /admin
+  if (isMaintenanceMode && !isAdmin && !isAdminRoute && !isAllowedRoute) {
     return <MaintenancePage />;
   }
+
 
   // ALWAYS render children instantly - no loading spinner ever
   return <>{children}</>;
