@@ -52,7 +52,8 @@ Deno.serve(async (req) => {
   const all = (data ?? []) as Record<string, unknown>[];
 
   // Pagination: page/per_page, default returns everything.
-  const perPage = Math.max(1, Math.min(Number(url.searchParams.get("per_page") ?? all.length || 1), 5000));
+  const defaultPer = all.length > 0 ? all.length : 1;
+  const perPage = Math.max(1, Math.min(Number(url.searchParams.get("per_page") ?? defaultPer), 5000));
   const page = Math.max(1, Number(url.searchParams.get("page") ?? 1));
   const start = (page - 1) * perPage;
   const slice = all.slice(start, start + perPage);
