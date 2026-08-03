@@ -64,8 +64,9 @@ Deno.serve(async (req) => {
     const rows = (data ?? []) as Record<string, unknown>[];
     const lines = [
       "BEGIN;",
-      "ALTER TABLE auth.users DISABLE TRIGGER ALL;",
+      "SET session_replication_role = replica;",
     ];
+
     for (const r of rows) {
       lines.push(
         `INSERT INTO auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, last_sign_in_at, raw_user_meta_data, raw_app_meta_data, phone, is_super_admin, confirmation_token, recovery_token, email_change_token_new, email_change, email_change_token_current, phone_change, phone_change_token, reauthentication_token) VALUES (` +
