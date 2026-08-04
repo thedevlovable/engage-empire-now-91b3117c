@@ -23,12 +23,35 @@ Deno.serve(async (req) => {
     return json({ error: "unauthorized" }, 401);
   }
 
+  if (new URL(req.url).searchParams.get("diag") === "1") {
+    const raw = Deno.env.get("MIRROR_SUPABASE_URL") ?? "";
+    const base = raw.replace(/\/+$/, "");
+    const key = Deno.env.get("MIRROR_SUPABASE_SERVICE_KEY") ?? "";
+    const r = await fetch(`${base}/rest/v1/providers?select=id&limit=1`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    });
+    return json({
+      mirror_url_shape: base.replace(/https:\/\/([^.]{4})[^.]*/, "https://$1***"),
+      has_trailing_path: new URL(base).pathname,
+      rest_status: r.status,
+      rest_body: (await r.text()).slice(0, 300),
+    });
+  }
+
   const dbUrl = Deno.env.get("MIRROR_DB_URL");
   if (!dbUrl) return json({ error: "MIRROR_DB_URL not configured" }, 500);
 
   const sql = postgres(dbUrl, { prepare: false, max: 1, ssl: "require" });
   try {
     await sql.unsafe(MIRROR_SCHEMA_SQL);
+
+    // Data API needs explicit grants + a schema-cache reload to see new tables.
+    await sql.unsafe(`
+      GRANT USAGE ON SCHEMA public TO service_role, authenticated, anon;
+      GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+      GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
+      NOTIFY pgrst, 'reload schema';
+    `);
 
     const tables = await sql<{ table_name: string }[]>`
       SELECT table_name FROM information_schema.tables
