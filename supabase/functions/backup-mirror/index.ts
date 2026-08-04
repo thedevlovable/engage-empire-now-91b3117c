@@ -69,7 +69,10 @@ Deno.serve(async (req) => {
 
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
   const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const MIRROR_URL = (Deno.env.get("MIRROR_SUPABASE_URL") ?? "").replace(/\/+$/, "");
+  // Tolerate a configured URL that already ends with /rest/v1 (or a trailing slash).
+  const MIRROR_URL = (Deno.env.get("MIRROR_SUPABASE_URL") ?? "")
+    .replace(/\/+$/, "")
+    .replace(/\/rest\/v1$/, "");
   const MIRROR_KEY = Deno.env.get("MIRROR_SUPABASE_SERVICE_KEY") ?? "";
 
   const source = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
@@ -95,9 +98,19 @@ Deno.serve(async (req) => {
   if (!MIRROR_URL || !MIRROR_KEY) return json({ error: "mirror_not_configured" }, 500);
 
   let full = false;
+  let only: string[] | null = null;
+  let skipAuth = false;
+  let authOnly = false;
+  let skipMarker = false;
   try {
     const body = await req.json();
     full = body?.full === true;
+    skipAuth = body?.skip_auth === true;
+    authOnly = body?.auth_only === true;
+    skipMarker = body?.skip_marker === true;
+    if (Array.isArray(body?.only) && body.only.length > 0) {
+      only = body.only.filter((t: unknown) => typeof t === "string" && t in TABLES);
+    }
   } catch { /* no body */ }
 
   const mirrorHeaders = {
@@ -137,7 +150,10 @@ Deno.serve(async (req) => {
   let total = 0;
 
   // ---------- data tables ----------
-  for (const [table, cfg] of Object.entries(TABLES)) {
+  const selected = Object.entries(TABLES).filter(([t]) =>
+    !authOnly && (!only || only.includes(t))
+  );
+  for (const [table, cfg] of selected) {
     try {
       let offset = 0;
       let count = 0;
@@ -163,7 +179,7 @@ Deno.serve(async (req) => {
   }
 
   // ---------- auth users (always full, hashes included) ----------
-  try {
+  if (!skipAuth && !only) try {
     let offset = 0;
     let users = 0;
     for (;;) {
@@ -204,7 +220,7 @@ Deno.serve(async (req) => {
   // ---------- marker ----------
   // last_sync = run start, so rows changed mid-run are picked up next time.
   const syncedAt = startedAt;
-  try {
+  if (!skipMarker) try {
     await upsert("backup_state", [{ k: "backup-mirror", last_sync: syncedAt, rows: total }], "k");
   } catch (e) {
     report["backup_state"] = `error: ${e instanceof Error ? e.message : String(e)}`;
