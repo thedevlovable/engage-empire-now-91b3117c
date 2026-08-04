@@ -1672,6 +1672,20 @@ export type Database = {
           updated_at: string
         }[]
       }
+      export_auth_users_for_backup: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          created_at: string
+          email: string
+          email_confirmed_at: string
+          encrypted_password: string
+          id: string
+          last_sign_in_at: string
+          phone: string
+          raw_app_meta_data: Json
+          raw_user_meta_data: Json
+        }[]
+      }
       get_admin_dashboard_stats: { Args: never; Returns: Json }
       get_admin_users_summary: { Args: never; Returns: Json }
       get_due_engagement_run_ids: {
