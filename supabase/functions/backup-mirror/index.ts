@@ -202,7 +202,8 @@ Deno.serve(async (req) => {
   }
 
   // ---------- marker ----------
-  const syncedAt = new Date().toISOString();
+  // last_sync = run start, so rows changed mid-run are picked up next time.
+  const syncedAt = startedAt;
   try {
     await upsert("backup_state", [{ k: "backup-mirror", last_sync: syncedAt, rows: total }], "k");
   } catch (e) {
