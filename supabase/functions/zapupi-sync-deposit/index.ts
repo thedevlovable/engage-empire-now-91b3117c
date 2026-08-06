@@ -79,7 +79,9 @@ Deno.serve(async (req) => {
     })
     if (error) return json({ error: error.message }, 500)
     if ((data as any)?.credited && !(data as any)?.duplicate) {
-      notifyTelegram(admin, orderId).catch((e) => console.error('tg notify', e))
+      // Single unified notification (user DM + admin fan-out). If the webhook
+      // already credited this order, `duplicate` is true and nothing is sent.
+      notifyDepositStatus(userId, orderId, Number(dep.amount_inr)).catch((e) => console.error('tg notify', e))
     }
     return json({ credited: true, result: data })
   } catch (e) {
