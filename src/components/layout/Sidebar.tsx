@@ -120,12 +120,17 @@ export function Sidebar({ onClose }: SidebarProps) {
 
       {/* Currency */}
       <div className="px-3 pb-2">
-        <div className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-[12px] font-medium" style={{ color: '#888', background: '#fafafa', border: '1px solid #f0e8ef' }}>
-          <div className="flex items-center gap-2">
-            <span className="text-base">🇮🇳</span>
-            <span className="uppercase tracking-wider">INR</span>
+        <div className="w-full flex flex-col gap-1 px-3 py-2 rounded-xl text-[10px] font-medium" style={{ color: '#888', background: '#fafafa', border: '1px solid #f0e8ef' }}>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-sm">🇮🇳</span>
+              <span className="uppercase tracking-wider">INR</span>
+            </div>
+            <span className="opacity-60">₹</span>
           </div>
-          <span className="text-[10px] opacity-60">₹</span>
+          <div className="mt-1 pt-1 border-t border-dashed border-gray-200 text-[9px] leading-tight text-blue-600 font-bold">
+            3 Aug 22:02 PM se abhi tak kitna fund add hua ZapUPI: ₹0, OxaPay: ₹682, Manual: ₹344.98
+          </div>
         </div>
       </div>
 
