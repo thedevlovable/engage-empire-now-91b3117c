@@ -153,7 +153,9 @@ Deno.serve(async (req) => {
     await admin.from('zapupi_webhook_events').update({
       processed: true, credit_result: data as any,
     }).eq('event_key', eventKey)
-    await notifyTelegram(admin, orderId, data, 'webhook').catch((e) => console.error('tg notify', e))
+    // ⚠️ SINGLE notification only — notify-deposit-status handles both the
+    // user DM and the admin channel fan-out. Do NOT add another Telegram call
+    // here, otherwise one payment produces two messages.
     if ((data as any)?.credited && !(data as any)?.duplicate) {
       await notifyUserAdmin(dep.user_id, orderId, 'success', dep.amount_inr).catch(() => {})
     }
@@ -321,46 +323,10 @@ export async function recordFraudAndMaybeBan(
   }
 }
 
-async function notifyTelegram(admin: any, orderId: string, creditResult: any, source: 'webhook' | 'sync') {
-  if (!creditResult?.credited || creditResult?.duplicate) return
-  const { data: dep } = await admin
-    .from('zapupi_deposits')
-    .select('user_id, amount_inr, txn_id, utr')
-    .eq('order_id', orderId)
-    .maybeSingle()
-  if (!dep) return
-  const { data: prof } = await admin
-    .from('profiles')
-    .select('email, full_name')
-    .eq('user_id', dep.user_id)
-    .maybeSingle()
-  const { data: wal } = await admin
-    .from('wallets')
-    .select('balance')
-    .eq('user_id', dep.user_id)
-    .maybeSingle()
-  const rate = 90
-  const balInr = wal?.balance ? (Number(wal.balance) * rate).toFixed(2) : '?'
-  const msg = [
-    `💰 <b>Auto Fund Added (ZapUPI)</b>`,
-    ``,
-    `👤 <b>User:</b> ${prof?.email ?? dep.user_id}`,
-    `💵 <b>Amount:</b> ₹${Number(dep.amount_inr).toFixed(2)}`,
-    `🏦 <b>New Balance:</b> ₹${balInr}`,
-    `🆔 <b>Order:</b> <code>${orderId}</code>`,
-    dep.utr ? `🔁 <b>UTR:</b> <code>${dep.utr}</code>` : '',
-    dep.txn_id ? `🧾 <b>Txn:</b> <code>${dep.txn_id}</code>` : '',
-    `📡 <b>Source:</b> ${source}`,
-  ].filter(Boolean).join('\n')
-  await fetch(`${SUPABASE_URL}/functions/v1/send-telegram-notification`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SERVICE_ROLE}`,
-    },
-    body: JSON.stringify({ message: msg, parse_mode: 'HTML' }),
-  })
-}
+// NOTE: the old `notifyTelegram()` admin-only message was removed on purpose.
+// It fired alongside notify-deposit-status, so one payment sent two Telegram
+// messages. notifyUserAdmin() below is now the single source of truth.
+
 async function notifyUserAdmin(userId: string | null, orderId: string, status: 'success'|'failed', amountInr: number | null, reason?: string) {
   if (!userId) return
   await fetch(`${SUPABASE_URL}/functions/v1/notify-deposit-status`, {

@@ -79,7 +79,9 @@ Deno.serve(async (req) => {
     })
     if (error) return json({ error: error.message }, 500)
     if ((data as any)?.credited && !(data as any)?.duplicate) {
-      notifyTelegram(admin, orderId).catch((e) => console.error('tg notify', e))
+      // Single unified notification (user DM + admin fan-out). If the webhook
+      // already credited this order, `duplicate` is true and nothing is sent.
+      notifyDepositStatus(userId, orderId, Number(dep.amount_inr)).catch((e) => console.error('tg notify', e))
     }
     return json({ credited: true, result: data })
   } catch (e) {
@@ -212,32 +214,19 @@ async function recordFraudAndMaybeBan(
   }
 }
 
-async function notifyTelegram(admin: any, orderId: string) {
-  const { data: dep } = await admin
-    .from('zapupi_deposits')
-    .select('user_id, amount_inr, txn_id, utr')
-    .eq('order_id', orderId)
-    .maybeSingle()
-  if (!dep) return
-  const { data: prof } = await admin
-    .from('profiles').select('email').eq('user_id', dep.user_id).maybeSingle()
-  const { data: wal } = await admin
-    .from('wallets').select('balance').eq('user_id', dep.user_id).maybeSingle()
-  const balInr = wal?.balance ? (Number(wal.balance) * 90).toFixed(2) : '?'
-  const msg = [
-    `💰 <b>Auto Fund Added (ZapUPI)</b>`,
-    ``,
-    `👤 <b>User:</b> ${prof?.email ?? dep.user_id}`,
-    `💵 <b>Amount:</b> ₹${Number(dep.amount_inr).toFixed(2)}`,
-    `🏦 <b>New Balance:</b> ₹${balInr}`,
-    `🆔 <b>Order:</b> <code>${orderId}</code>`,
-    dep.utr ? `🔁 <b>UTR:</b> <code>${dep.utr}</code>` : '',
-    dep.txn_id ? `🧾 <b>Txn:</b> <code>${dep.txn_id}</code>` : '',
-    `📡 <b>Source:</b> sync (manual verify)`,
-  ].filter(Boolean).join('\n')
-  await fetch(`${SUPABASE_URL}/functions/v1/send-telegram-notification`, {
+// Single unified deposit notification (user DM + admin channels) so that one
+// payment can never produce two Telegram messages.
+async function notifyDepositStatus(userId: string | null, orderId: string, amountInr: number | null) {
+  if (!userId) return
+  await fetch(`${SUPABASE_URL}/functions/v1/notify-deposit-status`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SERVICE_ROLE}` },
-    body: JSON.stringify({ message: msg, parse_mode: 'HTML' }),
-  })
+    body: JSON.stringify({
+      user_id: userId,
+      order_id: orderId,
+      method: 'ZapUPI',
+      status: 'success',
+      amount_inr: amountInr,
+    }),
+  }).catch(() => {})
 }
